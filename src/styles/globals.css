@@ -1,0 +1,116 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  color-scheme: light;
+  --surface-base: #f9f8f5;
+  --surface-panel: #ffffff;
+  --surface-elevated: #f2f5fa;
+  --surface-muted: #dde3ec;
+  --border-subtle: rgba(30, 45, 90, 0.12);
+  --border-strong: rgba(30, 45, 90, 0.24);
+  --text-primary: #1a1f2e;
+  --text-secondary: #2f3951;
+  --text-muted: #5f6980;
+  --brand-primary: #1e2d5a;
+  --brand-accent: #0a6b72;
+  --brand-accent-soft: rgba(10, 107, 114, 0.12);
+  --status-success: #0a6b72;
+  --status-warning: #8e9bb0;
+  --status-danger: #5a657f;
+  --focus-ring: rgba(10, 107, 114, 0.35);
+}
+
+[data-theme="dark"] {
+  color-scheme: dark;
+  --surface-base: #0f1830;
+  --surface-panel: #172346;
+  --surface-elevated: #1d2b4e;
+  --surface-muted: #243357;
+  --border-subtle: rgba(142, 155, 176, 0.18);
+  --border-strong: rgba(221, 227, 236, 0.22);
+  --text-primary: #ebedf4;
+  --text-secondary: #c8d1e0;
+  --text-muted: #93a0b8;
+  --brand-primary: #273a72;
+  --brand-accent: #2e8d95;
+  --brand-accent-soft: rgba(46, 141, 149, 0.18);
+  --status-success: #2e8d95;
+  --status-warning: #8e9bb0;
+  --status-danger: #7e8da7;
+  --focus-ring: rgba(46, 141, 149, 0.38);
+}
+
+* {
+  border-color: var(--border-subtle);
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  min-height: 100vh;
+  background: var(--surface-base);
+  color: var(--text-primary);
+  font-family: "Source Sans 3", "Segoe UI", sans-serif;
+  text-rendering: optimizeLegibility;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+button,
+input,
+textarea,
+select {
+  font: inherit;
+}
+
+:focus-visible {
+  outline: 2px solid var(--focus-ring);
+  outline-offset: 2px;
+}
+
+.surface-grid {
+  background-image:
+    linear-gradient(to right, rgba(142, 155, 176, 0.08) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(142, 155, 176, 0.08) 1px, transparent 1px);
+  background-size: 32px 32px;
+}
+
+.editor-prose {
+  color: var(--text-primary);
+  line-height: 1.8;
+}
+
+.editor-prose h1,
+.editor-prose h2,
+.editor-prose h3 {
+  font-family: "Source Serif 4", Georgia, serif;
+  color: var(--brand-primary);
+  font-weight: 600;
+}
+
+.editor-prose h1 {
+  font-size: 2rem;
+}
+
+.editor-prose h2 {
+  font-size: 1.5rem;
+}
+
+.editor-prose h3 {
+  font-size: 1.25rem;
+}
+
+.editor-prose p.is-editor-empty:first-child::before {
+  color: var(--text-muted);
+  content: attr(data-placeholder);
+  float: left;
+  height: 0;
+  pointer-events: none;
+}

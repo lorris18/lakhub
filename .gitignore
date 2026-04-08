@@ -1,0 +1,20 @@
+node_modules
+.next
+coverage
+dist
+out
+.DS_Store
+.playwright-cli
+*.tsbuildinfo
+.env
+.env.local
+.env.production.local
+.env.development.local
+supabase/.branches
+supabase/.temp
+playwright-report
+test-results
+output
+
+# Local Netlify folder
+.netlify
