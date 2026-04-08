@@ -1,6 +1,7 @@
 import Link from "next/link";
 
 import { LoginForm } from "@/components/forms/login-form";
+import { RecoverySessionHandler } from "@/components/forms/recovery-session-handler";
 import { SetupNotice } from "@/components/ui/setup-notice";
 import { Surface } from "@/components/ui/surface";
 import { hasPublicSupabaseEnv } from "@/lib/env";
@@ -8,9 +9,10 @@ import { hasPublicSupabaseEnv } from "@/lib/env";
 export default async function LoginPage({
   searchParams
 }: {
-  searchParams?: Promise<{ account?: string }>;
+  searchParams?: Promise<{ account?: string; recovery?: string }>;
 }) {
   const params = await searchParams;
+  const isRecoveryFlow = params?.recovery === "1";
 
   return (
     <main className="mx-auto grid min-h-[calc(100vh-73px)] max-w-7xl gap-8 px-4 py-10 sm:px-6 lg:grid-cols-[1.1fr_0.9fr] lg:px-8 lg:py-16">
@@ -38,6 +40,7 @@ export default async function LoginPage({
             Le compte a bien été supprimé et la session a été fermée.
           </div>
         ) : null}
+        <RecoverySessionHandler enabled={isRecoveryFlow} />
         <div className="mt-6">
           {hasPublicSupabaseEnv ? (
             <LoginForm />

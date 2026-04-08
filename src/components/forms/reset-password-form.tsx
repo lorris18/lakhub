@@ -20,8 +20,10 @@ export function ResetPasswordForm() {
         try {
           const email = String(formData.get("email") ?? "");
           const supabase = createSupabaseBrowserClient();
+          const callbackUrl = new URL("/auth/callback", window.location.origin);
+          callbackUrl.searchParams.set("next", "/settings?recovery=1");
           const { error: resetError } = await supabase.auth.resetPasswordForEmail(email, {
-            redirectTo: `${window.location.origin}/auth/callback`
+            redirectTo: callbackUrl.toString()
           });
 
           if (resetError) {

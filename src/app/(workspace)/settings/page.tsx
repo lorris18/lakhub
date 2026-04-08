@@ -11,11 +11,19 @@ import { Textarea } from "@/components/ui/textarea";
 import { hasPublicSupabaseEnv, hasServiceRoleEnv } from "@/lib/env";
 import { getSettings } from "@/lib/data/settings";
 
-export default async function SettingsPage() {
+type SettingsPageProps = {
+  searchParams?: Promise<Record<string, string | string[] | undefined>>;
+};
+
+export default async function SettingsPage({ searchParams }: SettingsPageProps) {
   if (!hasPublicSupabaseEnv) {
     return null;
   }
 
+  const resolvedSearchParams = (await searchParams) ?? {};
+  const recoveryParam = resolvedSearchParams["recovery"];
+  const isRecoveryMode =
+    recoveryParam === "1" || (Array.isArray(recoveryParam) && recoveryParam.includes("1"));
   const data = await getSettings();
 
   return (
@@ -25,6 +33,19 @@ export default async function SettingsPage() {
         title="Profil, préférences et identité"
         description="Profil utilisateur, thème, notifications et avatar sont gérés depuis une surface unique."
       />
+
+      {isRecoveryMode ? (
+        <Surface className="border-brand-accent/25 bg-brand-accent-soft/70">
+          <p className="text-xs uppercase tracking-[0.2em] text-text-muted">Récupération</p>
+          <h3 className="mt-2 font-display text-2xl text-brand-primary">
+            Définissez un nouveau mot de passe
+          </h3>
+          <p className="mt-2 text-sm text-text-secondary">
+            Votre session de récupération est active. Utilisez le bloc “Changer le mot de passe”
+            ci-dessous pour finaliser la réinitialisation.
+          </p>
+        </Surface>
+      ) : null}
 
       <div className="grid gap-6 xl:grid-cols-[1.05fr_0.95fr]">
         <Surface className="space-y-4">
