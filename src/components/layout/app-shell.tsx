@@ -6,6 +6,7 @@ import { ChevronDown, Menu, Settings, ShieldCheck, X } from "lucide-react";
 import { useEffect, useState } from "react";
 
 import { ThemeToggle } from "@/components/layout/theme-toggle";
+import { SignOutButton } from "@/components/layout/sign-out-button";
 import { workspaceNavigation } from "@/lib/constants/navigation";
 import { initials } from "@/lib/utils/format";
 import { cn } from "@/lib/utils/cn";
@@ -116,6 +117,7 @@ export function AppShell({ children, role, profileName, institution, mustChangeP
                         Administration
                       </Link>
                     ) : null}
+                    <SignOutButton />
                   </div>
                 </details>
               </div>
@@ -144,6 +146,12 @@ export function AppShell({ children, role, profileName, institution, mustChangeP
                     );
                   })}
                 </nav>
+                <div className="mt-4 border-t border-white/10 pt-4">
+                  <SignOutButton
+                    buttonClassName="text-white/72 hover:bg-white/8 hover:text-white"
+                    className="rounded-xl bg-white/6 p-1"
+                  />
+                </div>
               </div>
             ) : null}
           </header>
