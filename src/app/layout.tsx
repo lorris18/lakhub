@@ -3,11 +3,11 @@ import type { Metadata } from "next";
 import "@/styles/globals.css";
 
 import { ThemeScript } from "@/components/layout/theme-script";
+import { hubBrand } from "@/lib/constants/app";
 
 export const metadata: Metadata = {
-  title: "LAKHub",
-  description:
-    "Plateforme académique de recherche, rédaction, collaboration et versioning conçue pour un usage sérieux."
+  title: hubBrand.name,
+  description: hubBrand.description
 };
 
 export default function RootLayout({

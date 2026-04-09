@@ -1,9 +1,9 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { ChevronDown, Menu, Settings, ShieldCheck, X } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 import { ThemeToggle } from "@/components/layout/theme-toggle";
 import { workspaceNavigation } from "@/lib/constants/navigation";
@@ -16,13 +16,21 @@ type Props = {
   role?: "user" | "admin" | "superadmin" | null;
   profileName?: string | null;
   institution?: string | null;
+  mustChangePassword?: boolean;
 };
 
-export function AppShell({ children, role, profileName, institution }: Props) {
+export function AppShell({ children, role, profileName, institution, mustChangePassword = false }: Props) {
   const pathname = usePathname();
+  const router = useRouter();
   const [mobileOpen, setMobileOpen] = useState(false);
   const navItems = workspaceNavigation;
   const isAdmin = role === "admin" || role === "superadmin";
+
+  useEffect(() => {
+    if (mustChangePassword && pathname !== "/settings") {
+      router.replace("/settings?force-password-change=1");
+    }
+  }, [mustChangePassword, pathname, router]);
 
   return (
     <div className="min-h-screen bg-surface-base text-text-primary">

@@ -352,6 +352,12 @@ export type DeleteAccountActionState = {
   redirectTo?: string;
 };
 
+export type InviteUserActionState = {
+  status: "idle" | "error" | "success";
+  message?: string;
+  temporaryPassword?: string;
+};
+
 export async function deleteOwnAccountAction(
   _previousState: DeleteAccountActionState,
   formData: FormData
@@ -391,28 +397,42 @@ export async function markNotificationReadAction(formData: FormData) {
   revalidatePath("/dashboard");
 }
 
-export async function inviteUserAction(formData: FormData) {
+export async function inviteUserAction(
+  _previousState: InviteUserActionState,
+  formData: FormData
+): Promise<InviteUserActionState> {
   try {
     const payload = z
       .object({
         email: z.string().email(),
-        fullName: z.string().max(120).optional().or(z.literal(""))
+        fullName: z.string().max(120).optional().or(z.literal("")),
+        temporaryPassword: z.string().min(8).max(128).optional().or(z.literal(""))
       })
       .parse({
         email: formData.get("email"),
-        fullName: formData.get("fullName")
+        fullName: formData.get("fullName"),
+        temporaryPassword: formData.get("temporaryPassword")
       });
 
-    await invitePlatformUser(payload.email, payload.fullName || null);
+    const invite = await invitePlatformUser(
+      payload.email,
+      payload.fullName || null,
+      payload.temporaryPassword || null
+    );
     revalidatePath("/admin");
-    redirect("/admin?invite=sent");
-  } catch (error) {
-    const reason =
-      error instanceof Error && /rate limit/i.test(error.message)
-        ? "rate-limit"
-        : "error";
 
-    redirect(`/admin?invite=${reason}`);
+    return {
+      status: "success",
+      message:
+        "Le compte a été créé avec un mot de passe provisoire. L’utilisateur devra le modifier à sa première connexion.",
+      temporaryPassword: invite.temporaryPassword
+    };
+  } catch (error) {
+    return {
+      status: "error",
+      message:
+        error instanceof Error ? error.message : "La création de l’accès utilisateur est impossible."
+    };
   }
 }
 

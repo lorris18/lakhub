@@ -657,4 +657,3 @@ export type Database = {
 export type AppTables = Database["public"]["Tables"];
 export type TableRow<T extends keyof AppTables> = AppTables[T]["Row"];
 export type TableInsert<T extends keyof AppTables> = AppTables[T]["Insert"];
-

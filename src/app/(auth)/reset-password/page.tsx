@@ -1,11 +1,18 @@
 import { ResetPasswordForm } from "@/components/forms/reset-password-form";
 import { SetupNotice } from "@/components/ui/setup-notice";
 import { Surface } from "@/components/ui/surface";
+import { createHubMetadata } from "@/lib/constants/app";
 import { hasPublicSupabaseEnv } from "@/lib/env";
+
+export const metadata = createHubMetadata({
+  title: "Réinitialisation du mot de passe",
+  description: "Réinitialisation de l’accès privé LAKHub.",
+  path: "/reset-password"
+});
 
 export default function ResetPasswordPage() {
   return (
-    <main className="mx-auto flex min-h-[calc(100vh-73px)] max-w-7xl items-center px-4 py-10 sm:px-6 lg:px-8">
+    <main className="mx-auto flex min-h-[calc(100vh-81px)] max-w-6xl items-center px-4 py-12 sm:px-6 lg:px-8">
       <Surface className="mx-auto w-full max-w-xl p-6 sm:p-8">
         <div className="space-y-2">
           <p className="text-xs uppercase tracking-[0.2em] text-text-muted">Réinitialisation</p>

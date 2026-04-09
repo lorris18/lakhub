@@ -1,8 +1,8 @@
-import { env } from "@/lib/env";
 import { insertAuditLog, requireProfile } from "@/lib/data/helpers";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 import { requirePlatformAdmin } from "@/lib/permissions/guards";
+import { generateTemporaryPassword } from "@/lib/security/passwords";
 import type { Database } from "@/lib/supabase/database.types";
 
 export async function getAdminSnapshot() {
@@ -50,23 +50,46 @@ export async function updateUserRole(userId: string, role: Database["public"]["E
   if (error) throw error;
 }
 
-export async function invitePlatformUser(email: string, fullName?: string | null) {
+export async function invitePlatformUser(
+  email: string,
+  fullName?: string | null,
+  temporaryPasswordInput?: string | null
+) {
   const profile = await requireProfile();
   requirePlatformAdmin(profile.role);
 
   const admin = createSupabaseAdminClient();
-  const invitation = await admin.auth.admin.inviteUserByEmail(email, {
-    data: {
-      full_name: fullName ?? undefined
-    },
-    redirectTo: `${env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000"}/auth/callback`
+  const normalizedEmail = email.trim().toLowerCase();
+  const temporaryPassword = temporaryPasswordInput?.trim() || generateTemporaryPassword();
+  const invitation = await admin.auth.admin.createUser({
+    email: normalizedEmail,
+    password: temporaryPassword,
+    email_confirm: true,
+    user_metadata: {
+      full_name: fullName ?? undefined,
+      must_change_password: true
+    }
   });
 
   if (invitation.error) {
     throw invitation.error;
   }
 
-  await insertAuditLog("admin.user.invite", "user", undefined, { email });
+  const userId = invitation.data.user?.id;
+
+  if (!userId) {
+    throw new Error("Création du compte impossible.");
+  }
+
+  await insertAuditLog("admin.user.invite", "user", userId, {
+    email: normalizedEmail,
+    mustChangePassword: true,
+    delivery: "temporary-password"
+  });
+
+  return {
+    temporaryPassword
+  };
 }
 
 export async function deletePlatformUser(userId: string) {

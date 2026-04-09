@@ -25,14 +25,17 @@ export function LoginForm({ defaultEmail, nextPath = "/dashboard" }: LoginFormPr
           const supabase = createSupabaseBrowserClient();
           const email = String(formData.get("email") ?? "");
           const password = String(formData.get("password") ?? "");
-          const { error: authError } = await supabase.auth.signInWithPassword({ email, password });
+          const { data, error: authError } = await supabase.auth.signInWithPassword({ email, password });
 
           if (authError) {
             setError(authError.message);
             return;
           }
 
-          window.location.assign(nextPath);
+          const mustChangePassword = data.user?.user_metadata?.["must_change_password"] === true;
+          window.location.assign(
+            mustChangePassword ? "/settings?force-password-change=1" : nextPath
+          );
         } catch (caughtError) {
           setError(caughtError instanceof Error ? caughtError.message : "Connexion impossible.");
         }

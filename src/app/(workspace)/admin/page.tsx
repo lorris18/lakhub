@@ -1,7 +1,7 @@
-import { deleteUserAction, inviteUserAction, updateUserRoleAction } from "@/app/(workspace)/actions";
+import { deleteUserAction, updateUserRoleAction } from "@/app/(workspace)/actions";
+import { InviteUserForm } from "@/components/admin/invite-user-form";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { SectionHeading } from "@/components/ui/section-heading";
 import { Select } from "@/components/ui/select";
 import { Surface } from "@/components/ui/surface";
@@ -10,16 +10,11 @@ import { getAdminSnapshot } from "@/lib/data/admin";
 import { getSystemReadiness } from "@/lib/system/readiness";
 import { formatDateTime } from "@/lib/utils/format";
 
-export default async function AdminPage({
-  searchParams
-}: {
-  searchParams?: Promise<{ invite?: string }>;
-}) {
+export default async function AdminPage() {
   if (!hasPublicSupabaseEnv) {
     return null;
   }
 
-  const params = await searchParams;
   const [snapshot, readiness] = await Promise.all([getAdminSnapshot(), getSystemReadiness()]);
 
   const readinessVariant =
@@ -36,18 +31,6 @@ export default async function AdminPage({
         title="Supervision produit"
         description="Gestion des utilisateurs d’abord. Les diagnostics techniques et l’historique détaillé passent en second plan."
       />
-
-      {params?.invite ? (
-        <Surface className="border border-border-subtle bg-surface-elevated">
-          <p className="text-sm text-text-secondary">
-            {params.invite === "sent"
-              ? "Invitation utilisateur envoyée."
-              : params.invite === "rate-limit"
-                ? "L’invitation email a été refusée par Supabase à cause du rate limit actuel. Réessayez dans quelques minutes."
-                : "L’invitation utilisateur n’a pas pu être envoyée."}
-          </p>
-        </Surface>
-      ) : null}
 
       <div className="grid gap-4 sm:grid-cols-2">
         <Surface>
@@ -66,13 +49,9 @@ export default async function AdminPage({
         <Surface className="space-y-4">
           <div className="rounded-2xl border border-border-subtle bg-surface-elevated p-4">
             <p className="font-medium text-brand-primary">Ajouter un utilisateur</p>
-            <form action={inviteUserAction} className="mt-4 grid gap-3 lg:grid-cols-[1fr_1fr_auto]">
-              <Input name="email" placeholder="email@institution.edu" required type="email" />
-              <Input name="fullName" placeholder="Nom complet (optionnel)" />
-              <Button type="submit" variant="accent">
-                Inviter
-              </Button>
-            </form>
+            <div className="mt-4">
+              <InviteUserForm />
+            </div>
           </div>
           <h3 className="font-display text-2xl text-brand-primary">Gestion des rôles</h3>
           <div className="space-y-3">

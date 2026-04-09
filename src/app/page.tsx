@@ -3,7 +3,7 @@ import { redirect } from "next/navigation";
 import { getCurrentUser } from "@/lib/auth/session";
 import { hasPublicSupabaseEnv } from "@/lib/env";
 
-export default async function PublicEntryPage() {
+export default async function HubEntryPage() {
   if (!hasPublicSupabaseEnv) {
     redirect("/login");
   }

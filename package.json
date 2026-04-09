@@ -7,7 +7,7 @@
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
-    "typecheck": "tsc --noEmit",
+    "typecheck": "rm -rf .next/types && next typegen && tsc --noEmit",
     "test": "vitest run",
     "readiness": "node scripts/readiness.mjs",
     "bootstrap:admin": "node scripts/bootstrap-admin.mjs",

@@ -9,6 +9,7 @@ import { Select } from "@/components/ui/select";
 import { Surface } from "@/components/ui/surface";
 import { Textarea } from "@/components/ui/textarea";
 import { hasPublicSupabaseEnv, hasServiceRoleEnv } from "@/lib/env";
+import { getCurrentUser } from "@/lib/auth/session";
 import { getSettings } from "@/lib/data/settings";
 
 type SettingsPageProps = {
@@ -22,9 +23,14 @@ export default async function SettingsPage({ searchParams }: SettingsPageProps) 
 
   const resolvedSearchParams = (await searchParams) ?? {};
   const recoveryParam = resolvedSearchParams["recovery"];
+  const forcePasswordParam = resolvedSearchParams["force-password-change"];
   const isRecoveryMode =
     recoveryParam === "1" || (Array.isArray(recoveryParam) && recoveryParam.includes("1"));
-  const data = await getSettings();
+  const isForcedPasswordChange =
+    forcePasswordParam === "1" || (Array.isArray(forcePasswordParam) && forcePasswordParam.includes("1"));
+  const [data, user] = await Promise.all([getSettings(), getCurrentUser()]);
+  const requiresPasswordChange =
+    user?.user_metadata?.["must_change_password"] === true || isForcedPasswordChange;
 
   return (
     <div className="space-y-8">
@@ -43,6 +49,19 @@ export default async function SettingsPage({ searchParams }: SettingsPageProps) 
           <p className="mt-2 text-sm text-text-secondary">
             Votre session de récupération est active. Utilisez le bloc “Changer le mot de passe”
             ci-dessous pour finaliser la réinitialisation.
+          </p>
+        </Surface>
+      ) : null}
+
+      {requiresPasswordChange ? (
+        <Surface className="border-brand-accent/25 bg-brand-accent-soft/70">
+          <p className="text-xs uppercase tracking-[0.2em] text-text-muted">Sécurité</p>
+          <h3 className="mt-2 font-display text-2xl text-brand-primary">
+            Changement du mot de passe requis
+          </h3>
+          <p className="mt-2 text-sm text-text-secondary">
+            Votre accès a été créé avec un mot de passe provisoire. Vous devez définir un mot de
+            passe personnel avant de continuer à utiliser LAKHub.
           </p>
         </Surface>
       ) : null}
@@ -97,7 +116,7 @@ export default async function SettingsPage({ searchParams }: SettingsPageProps) 
           <div className="border-t border-border-subtle pt-4">
             <h4 className="font-medium text-brand-primary">Changer le mot de passe</h4>
             <div className="mt-3">
-              <PasswordChangeForm />
+              <PasswordChangeForm required={requiresPasswordChange} />
             </div>
           </div>
           <div className="border-t border-border-subtle pt-4">

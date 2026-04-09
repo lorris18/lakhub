@@ -6,7 +6,11 @@ import { Button } from "@/components/ui/button";
 import { PasswordField } from "@/components/ui/password-field";
 import { createSupabaseBrowserClient } from "@/lib/supabase/client";
 
-export function PasswordChangeForm() {
+type PasswordChangeFormProps = {
+  required?: boolean;
+};
+
+export function PasswordChangeForm({ required = false }: PasswordChangeFormProps) {
   const [message, setMessage] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
@@ -39,7 +43,28 @@ export function PasswordChangeForm() {
             return;
           }
 
-          setMessage("Mot de passe mis à jour.");
+          const completion = await fetch("/api/settings/password-policy", {
+            method: "POST"
+          });
+
+          if (!completion.ok) {
+            const payload = (await completion.json().catch(() => null)) as { message?: string } | null;
+            setError(
+              payload?.message ??
+                "Le mot de passe a été changé, mais la finalisation de sécurité a échoué. Réessayez."
+            );
+            return;
+          }
+
+          setMessage(
+            required
+              ? "Mot de passe mis à jour. Redirection vers votre espace de travail..."
+              : "Mot de passe mis à jour."
+          );
+
+          if (required) {
+            window.location.assign("/dashboard");
+          }
         } catch (caughtError) {
           setError(caughtError instanceof Error ? caughtError.message : "Changement impossible.");
         }
@@ -64,7 +89,7 @@ export function PasswordChangeForm() {
       {message ? <p className="text-sm text-brand-accent">{message}</p> : null}
       {error ? <p className="text-sm text-text-secondary">{error}</p> : null}
       <Button disabled={isPending} type="submit" variant="secondary">
-        {isPending ? "Mise à jour..." : "Changer le mot de passe"}
+        {isPending ? "Mise à jour..." : required ? "Définir mon mot de passe définitif" : "Changer le mot de passe"}
       </Button>
     </form>
   );
