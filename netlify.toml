@@ -4,7 +4,7 @@ command = "npm run build"
 [build.environment]
 NODE_VERSION = "22"
 NPM_VERSION = "10.9.7"
-NPM_FLAGS = "--include=optional"
+NPM_FLAGS = "--include=dev --include=optional"
 
 [[plugins]]
 package = "@netlify/plugin-nextjs"
