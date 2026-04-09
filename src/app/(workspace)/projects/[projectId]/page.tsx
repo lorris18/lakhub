@@ -12,15 +12,18 @@ import { getProjectDetail } from "@/lib/data/projects";
 import { formatDate } from "@/lib/utils/format";
 
 export default async function ProjectDetailPage({
-  params
+  params,
+  searchParams
 }: {
   params: Promise<{ projectId: string }>;
+  searchParams?: Promise<{ invite?: string }>;
 }) {
   if (!hasPublicSupabaseEnv) {
     return null;
   }
 
   const { projectId } = await params;
+  const resolvedSearchParams = (await searchParams) ?? {};
   const detail = await getProjectDetail(projectId);
   const members = detail.members.map((member) => {
     const user = Array.isArray(member.users) ? member.users[0] ?? null : member.users ?? null;
@@ -29,6 +32,20 @@ export default async function ProjectDetailPage({
 
   return (
     <div className="space-y-8">
+      {resolvedSearchParams.invite ? (
+        <Surface className="border border-border-subtle bg-surface-elevated">
+          <p className="text-sm text-text-secondary">
+            {resolvedSearchParams.invite === "invite-sent"
+              ? "L’invitation email a été envoyée. Le collaborateur pourra définir lui-même son mot de passe depuis le lien reçu."
+              : resolvedSearchParams.invite === "signin-link-sent"
+                ? "Un lien de connexion a été envoyé au collaborateur. Une fois connecté, il pourra accepter l’invitation en un clic."
+                : resolvedSearchParams.invite === "manual-rate-limit"
+                  ? "L’invitation a été créée, mais Supabase a bloqué l’envoi email à cause du rate limit actuel. Utilisez le lien d’onboarding affiché ci-dessous."
+                  : "L’invitation a été créée, mais l’envoi email automatique n’a pas pu être confirmé. Utilisez le lien d’onboarding affiché ci-dessous."}
+          </p>
+        </Surface>
+      ) : null}
+
       <SectionHeading
         eyebrow="Projet"
         title={detail.project.title}

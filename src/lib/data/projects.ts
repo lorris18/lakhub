@@ -1,9 +1,110 @@
 import { randomUUID } from "node:crypto";
+import { createClient } from "@supabase/supabase-js";
 
+import { env, hasPublicSupabaseEnv } from "@/lib/env";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 import { appProjectRoleToDb, appProjectStatusToDb, dbProjectRoleToApp, dbProjectStatusToApp } from "@/lib/data/db-mappers";
 import { insertAuditLog, normalizeOptionalString, requireUser } from "@/lib/data/helpers";
-import type { DeliverableInput, InvitationInput, ProjectInput } from "@/lib/validation/shared";
+import type {
+  DeliverableInput,
+  InvitationActivationInput,
+  InvitationInput,
+  ProjectInput
+} from "@/lib/validation/shared";
+
+function invitationLoginPath(token: string, email: string) {
+  const params = new URLSearchParams({
+    email,
+    next: `/invitation/${token}`
+  });
+
+  return `/login?${params.toString()}`;
+}
+
+function invitationRedirectUrl(token: string, withPasswordSetup = false) {
+  const baseUrl = (env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000").replace(/\/$/, "");
+  const suffix = withPasswordSetup ? "?setup=1" : "";
+  return `${baseUrl}/invitation/${token}${suffix}`;
+}
+
+async function lookupAccountByEmail(email: string) {
+  const admin = createSupabaseAdminClient();
+  const { data, error } = await admin
+    .from("users")
+    .select("id, email")
+    .ilike("email", email)
+    .maybeSingle();
+
+  if (error) throw error;
+  return data;
+}
+
+async function sendProjectInvitationEmail(email: string, token: string, hasExistingAccount: boolean) {
+  if (!hasPublicSupabaseEnv) {
+    return {
+      delivery: "manual" as const,
+      reason: "Variables publiques Supabase manquantes."
+    };
+  }
+
+  if (!env.NEXT_PUBLIC_APP_URL) {
+    return {
+      delivery: "manual" as const,
+      reason: "NEXT_PUBLIC_APP_URL n’est pas configurée."
+    };
+  }
+
+  if (hasExistingAccount) {
+    const publicClient = createClient(env.NEXT_PUBLIC_SUPABASE_URL!, env.NEXT_PUBLIC_SUPABASE_ANON_KEY!, {
+      auth: {
+        autoRefreshToken: false,
+        persistSession: false
+      }
+    });
+
+    const { error } = await publicClient.auth.signInWithOtp({
+      email,
+      options: {
+        shouldCreateUser: false,
+        emailRedirectTo: invitationRedirectUrl(token)
+      }
+    });
+
+    if (error) {
+      return {
+        delivery: error.message.toLowerCase().includes("rate")
+          ? ("manual-rate-limit" as const)
+          : ("manual" as const),
+        reason: error.message
+      };
+    }
+
+    return {
+      delivery: "signin-link-sent" as const,
+      reason: null
+    };
+  }
+
+  const admin = createSupabaseAdminClient();
+  const { error } = await admin.auth.admin.inviteUserByEmail(email, {
+    redirectTo: invitationRedirectUrl(token, true)
+  });
+
+  if (error) {
+    return {
+      delivery: error.message.toLowerCase().includes("rate")
+        ? ("manual-rate-limit" as const)
+        : ("manual" as const),
+      reason: error.message
+    };
+  }
+
+  return {
+    delivery: "invite-sent" as const,
+    reason: null
+  };
+}
 
 export async function listProjects() {
   await requireUser();
@@ -172,7 +273,15 @@ export async function createInvitation(input: InvitationInput) {
   if (error) throw error;
 
   await insertAuditLog("invitation.create", "invitation", data.id, { email: input.email });
-  return data;
+
+  const existingAccount = await lookupAccountByEmail(input.email);
+  const emailResult = await sendProjectInvitationEmail(input.email, data.token, Boolean(existingAccount));
+
+  return {
+    ...data,
+    delivery: emailResult.delivery,
+    deliveryReason: emailResult.reason
+  };
 }
 
 export async function acceptInvitation(token: string) {
@@ -181,7 +290,7 @@ export async function acceptInvitation(token: string) {
 
   const invitation = await supabase
     .from("invitations")
-    .select("id, project_id, role, email, status, expires_at")
+    .select("id, project_id, role, email, status, expires_at, invited_by")
     .eq("token", token)
     .single();
 
@@ -204,7 +313,7 @@ export async function acceptInvitation(token: string) {
     project_id: data.project_id,
     user_id: user.id,
     role: data.role,
-    invited_by: user.id
+    invited_by: data.invited_by
   });
 
   await supabase
@@ -216,4 +325,87 @@ export async function acceptInvitation(token: string) {
     .eq("id", data.id);
 
   await insertAuditLog("invitation.accept", "invitation", data.id, { projectId: data.project_id });
+  return {
+    projectId: data.project_id
+  };
+}
+
+export async function completeInvitationAccountSetup(input: InvitationActivationInput) {
+  const admin = createSupabaseAdminClient();
+
+  const invitation = await admin
+    .from("invitations")
+    .select("id, project_id, role, email, status, expires_at, invited_by")
+    .eq("token", input.token)
+    .single();
+
+  if (invitation.error) throw invitation.error;
+
+  const record = invitation.data;
+  if (record.status !== "pending") {
+    throw new Error("Cette invitation n’est plus active.");
+  }
+
+  if (new Date(record.expires_at).getTime() < Date.now()) {
+    throw new Error("Cette invitation a expiré.");
+  }
+
+  const existingAccount = await lookupAccountByEmail(record.email);
+  if (existingAccount?.id) {
+    return {
+      loginPath: invitationLoginPath(input.token, record.email),
+      reason: "existing-account" as const
+    };
+  }
+
+  const createdUser = await admin.auth.admin.createUser({
+    email: record.email,
+    password: input.password,
+    email_confirm: true,
+    user_metadata: {
+      full_name: normalizeOptionalString(input.fullName)
+    }
+  });
+
+  if (createdUser.error || !createdUser.data.user) {
+    throw createdUser.error ?? new Error("Création du compte impossible.");
+  }
+
+  const userId = createdUser.data.user.id;
+
+  const membership = await admin.from("project_members").upsert({
+    project_id: record.project_id,
+    user_id: userId,
+    role: record.role,
+    invited_by: record.invited_by
+  });
+
+  if (membership.error) throw membership.error;
+
+  const invitationUpdate = await admin
+    .from("invitations")
+    .update({
+      accepted_at: new Date().toISOString(),
+      status: "accepted"
+    })
+    .eq("id", record.id);
+
+  if (invitationUpdate.error) throw invitationUpdate.error;
+
+  await admin.from("audit_logs").insert({
+    action: "invitation.accept",
+    actor_user_id: userId,
+    entity_type: "invitation",
+    entity_id: record.id,
+    metadata: {
+      projectId: record.project_id,
+      onboarding: "self-password"
+    } as never
+  });
+
+  return {
+    email: record.email,
+    redirectTo: `/projects/${record.project_id}`,
+    reason: "created" as const
+  };
 }

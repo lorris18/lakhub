@@ -48,6 +48,22 @@ export const invitationSchema = z.object({
   role: projectRoleSchema
 });
 
+export const invitationActivationSchema = z
+  .object({
+    token: z.string().uuid(),
+    fullName: z.string().min(2).max(120).optional().or(z.literal("")),
+    password: z.string().min(8).max(128),
+    confirmPassword: z.string().min(8).max(128)
+  })
+  .refine((value) => value.password === value.confirmPassword, {
+    path: ["confirmPassword"],
+    message: "Les mots de passe ne correspondent pas."
+  });
+
+export const invitationAcceptSchema = z.object({
+  token: z.string().uuid()
+});
+
 export const libraryItemSchema = z.object({
   title: z.string().min(2).max(180),
   authors: z.string().max(500).optional().or(z.literal("")),
@@ -176,6 +192,8 @@ export const aiRunSchema = z.object({
 export type ProjectInput = z.infer<typeof projectSchema>;
 export type DeliverableInput = z.infer<typeof deliverableSchema>;
 export type InvitationInput = z.infer<typeof invitationSchema>;
+export type InvitationActivationInput = z.infer<typeof invitationActivationSchema>;
+export type InvitationAcceptInput = z.infer<typeof invitationAcceptSchema>;
 export type LibraryItemInput = z.infer<typeof libraryItemSchema>;
 export type LibraryImportInput = z.infer<typeof libraryImportSchema>;
 export type CollectionInput = z.infer<typeof collectionSchema>;

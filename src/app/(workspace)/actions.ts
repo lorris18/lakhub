@@ -62,30 +62,36 @@ function formToObject(formData: FormData) {
   return Object.fromEntries(formData.entries());
 }
 
+function getString(formData: FormData, key: string) {
+  const value = formData.get(key);
+  return typeof value === "string" ? value : "";
+}
+
 export async function createProjectAction(formData: FormData) {
   const payload = projectSchema.parse({
-    title: formData.get("title"),
-    description: formData.get("description"),
-    problemStatement: formData.get("problemStatement"),
-    objectives: formData.get("objectives"),
-    status: formData.get("status"),
-    dueDate: formData.get("dueDate")
+    title: getString(formData, "title"),
+    description: getString(formData, "description"),
+    problemStatement: getString(formData, "problemStatement"),
+    objectives: getString(formData, "objectives"),
+    status: getString(formData, "status"),
+    dueDate: getString(formData, "dueDate")
   });
 
   const project = await createProject(payload);
   revalidatePath("/dashboard");
+  revalidatePath("/work");
   redirect(`/projects/${project.id}`);
 }
 
 export async function updateProjectAction(formData: FormData) {
-  const projectId = String(formData.get("projectId"));
+  const projectId = getString(formData, "projectId");
   const payload = projectSchema.parse({
-    title: formData.get("title"),
-    description: formData.get("description"),
-    problemStatement: formData.get("problemStatement"),
-    objectives: formData.get("objectives"),
-    status: formData.get("status"),
-    dueDate: formData.get("dueDate")
+    title: getString(formData, "title"),
+    description: getString(formData, "description"),
+    problemStatement: getString(formData, "problemStatement"),
+    objectives: getString(formData, "objectives"),
+    status: getString(formData, "status"),
+    dueDate: getString(formData, "dueDate")
   });
 
   await updateProject(projectId, payload);
@@ -96,6 +102,7 @@ export async function deleteProjectAction(formData: FormData) {
   const projectId = String(formData.get("projectId"));
   await deleteProject(projectId);
   revalidatePath("/projects");
+  revalidatePath("/work");
   redirect("/projects");
 }
 
@@ -118,15 +125,16 @@ export async function createInvitationAction(formData: FormData) {
     role: formData.get("role")
   });
 
-  await createInvitation(payload);
+  const invitation = await createInvitation(payload);
   revalidatePath(`/projects/${payload.projectId}`);
+  redirect(`/projects/${payload.projectId}?invite=${invitation.delivery}`);
 }
 
 export async function acceptInvitationAction(formData: FormData) {
   const token = String(formData.get("token"));
-  await acceptInvitation(token);
+  const result = await acceptInvitation(token);
   revalidatePath("/projects");
-  redirect("/projects");
+  redirect(`/projects/${result.projectId}`);
 }
 
 export async function createLibraryItemAction(formData: FormData) {
@@ -198,13 +206,14 @@ export async function importLibraryFileAction(formData: FormData) {
 
 export async function createDocumentAction(formData: FormData) {
   const payload = documentSchema.parse({
-    title: formData.get("title"),
-    kind: formData.get("kind"),
-    projectId: formData.get("projectId")
+    title: getString(formData, "title"),
+    kind: getString(formData, "kind"),
+    projectId: getString(formData, "projectId")
   });
 
   const document = await createDocument(payload);
   revalidatePath("/documents");
+  revalidatePath("/work");
   redirect(`/documents/${document.id}`);
 }
 
@@ -215,6 +224,7 @@ export async function deleteDocumentAction(formData: FormData) {
   revalidatePath("/dashboard");
   revalidatePath("/versioning");
   revalidatePath("/collaboration");
+  revalidatePath("/work");
   redirect("/documents");
 }
 
@@ -251,6 +261,7 @@ export async function createVersionAction(formData: FormData) {
   await createDocumentVersion(payload);
   revalidatePath(`/documents/${payload.documentId}`);
   revalidatePath("/versioning");
+  revalidatePath("/work");
 }
 
 export async function createSubmissionAction(formData: FormData) {
@@ -264,6 +275,7 @@ export async function createSubmissionAction(formData: FormData) {
   await createSubmission(payload);
   revalidatePath(`/documents/${payload.documentId}`);
   revalidatePath("/versioning");
+  revalidatePath("/work");
 }
 
 export async function createCommentAction(formData: FormData) {
@@ -277,6 +289,7 @@ export async function createCommentAction(formData: FormData) {
   await createComment(payload);
   revalidatePath("/collaboration");
   revalidatePath(`/documents/${payload.documentId}`);
+  revalidatePath("/work");
 }
 
 export async function createSuggestionAction(formData: FormData) {
@@ -291,6 +304,7 @@ export async function createSuggestionAction(formData: FormData) {
   await createSuggestion(payload);
   revalidatePath("/collaboration");
   revalidatePath(`/documents/${payload.documentId}`);
+  revalidatePath("/work");
 }
 
 export async function updateCommentStatusAction(formData: FormData) {
@@ -302,6 +316,7 @@ export async function updateCommentStatusAction(formData: FormData) {
   const updated = await updateCommentStatus(payload);
   revalidatePath("/collaboration");
   revalidatePath(`/documents/${updated.document_id}`);
+  revalidatePath("/work");
 }
 
 export async function updateSuggestionStatusAction(formData: FormData) {
@@ -313,6 +328,7 @@ export async function updateSuggestionStatusAction(formData: FormData) {
   const updated = await updateSuggestionStatus(payload);
   revalidatePath("/collaboration");
   revalidatePath(`/documents/${updated.document_id}`);
+  revalidatePath("/work");
 }
 
 export async function updateSettingsAction(formData: FormData) {

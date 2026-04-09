@@ -32,7 +32,7 @@ export default async function CollaborationPage() {
       <SectionHeading
         eyebrow="Collaboration"
         title="Commentaires, annotations et suggestions"
-        description="Les échanges sont ancrés aux documents et préparés pour des cycles de révision explicites."
+        description="Vue détaillée de la révision. Les ancrages techniques sont volontairement masqués."
       />
 
       <div className="grid gap-6 xl:grid-cols-[1.05fr_0.95fr]">
@@ -129,6 +129,7 @@ export default async function CollaborationPage() {
             <h3 className="font-display text-2xl text-brand-primary">Nouveau commentaire</h3>
             {documents.length ? (
               <form action={createCommentAction} className="space-y-3">
+                <input name="anchorId" type="hidden" value="document-body" />
                 <div className="space-y-2">
                   <label className="text-sm font-medium text-text-secondary" htmlFor="commentDocumentId">
                     Document
@@ -154,12 +155,6 @@ export default async function CollaborationPage() {
                     ))}
                   </Select>
                 </div>
-                <Textarea
-                  defaultValue="section-introduction"
-                  name="anchorId"
-                  placeholder="Anchor ID (section-1, paragraph-2...)"
-                  required
-                />
                 <Textarea name="body" placeholder="Commentaire" required />
                 <Button type="submit" variant="accent">
                   Ajouter le commentaire
@@ -176,6 +171,7 @@ export default async function CollaborationPage() {
             <h3 className="font-display text-2xl text-brand-primary">Nouvelle suggestion</h3>
             {documents.length ? (
               <form action={createSuggestionAction} className="space-y-3">
+                <input name="anchorId" type="hidden" value="document-body" />
                 <div className="space-y-2">
                   <label className="text-sm font-medium text-text-secondary" htmlFor="suggestionDocumentId">
                     Document
@@ -201,7 +197,6 @@ export default async function CollaborationPage() {
                     ))}
                   </Select>
                 </div>
-                <Textarea defaultValue="section-methodologie" name="anchorId" placeholder="Anchor ID" required />
                 <Textarea name="originalText" placeholder="Texte original" required />
                 <Textarea name="proposedText" placeholder="Texte proposé" required />
                 <Button type="submit" variant="primary">

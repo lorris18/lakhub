@@ -34,7 +34,7 @@ export default async function AdminPage({
       <SectionHeading
         eyebrow="Admin"
         title="Supervision produit"
-        description="Vue agrégée des utilisateurs, activité récente et gouvernance des rôles de plateforme."
+        description="Gestion des utilisateurs d’abord. Les diagnostics techniques et l’historique détaillé passent en second plan."
       />
 
       {params?.invite ? (
@@ -51,52 +51,16 @@ export default async function AdminPage({
 
       <div className="grid gap-4 sm:grid-cols-2">
         <Surface>
-          <p className="text-sm text-text-secondary">Utilisateurs récents</p>
+          <p className="text-sm text-text-secondary">Utilisateurs</p>
           <p className="mt-3 font-display text-4xl text-brand-primary">{snapshot.users.length}</p>
         </Surface>
         <Surface>
-          <p className="text-sm text-text-secondary">Volumes actuels</p>
+          <p className="text-sm text-text-secondary">Volumes</p>
           <p className="mt-3 text-lg text-brand-primary">
             {snapshot.stats.projects} projets • {snapshot.stats.documents} documents
           </p>
         </Surface>
       </div>
-
-      <Surface className="space-y-4">
-        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-          <div>
-            <h3 className="font-display text-2xl text-brand-primary">Readiness système</h3>
-            <p className="text-sm text-text-secondary">
-              Vérification réelle des variables critiques et des services externes configurés.
-            </p>
-          </div>
-          <Badge variant={readinessVariant}>{readiness.overall}</Badge>
-        </div>
-        <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
-          {readiness.checks.map((check) => (
-            <div key={check.id} className="rounded-2xl border border-border-subtle bg-surface-elevated p-4">
-              <div className="flex items-center justify-between gap-3">
-                <p className="font-medium text-brand-primary">{check.label}</p>
-                <Badge
-                  variant={
-                    check.state === "ready"
-                      ? "accent"
-                      : check.state === "warning"
-                        ? "primary"
-                        : "subtle"
-                  }
-                >
-                  {check.state}
-                </Badge>
-              </div>
-              <p className="mt-2 text-sm text-text-secondary">{check.detail}</p>
-            </div>
-          ))}
-        </div>
-        <p className="text-xs uppercase tracking-[0.18em] text-text-muted">
-          Dernière vérification {formatDateTime(readiness.checkedAt)}
-        </p>
-      </Surface>
 
       <div className="grid gap-6 xl:grid-cols-[1fr_0.9fr]">
         <Surface className="space-y-4">
@@ -146,20 +110,60 @@ export default async function AdminPage({
           </div>
         </Surface>
 
-        <Surface className="space-y-4">
-          <h3 className="font-display text-2xl text-brand-primary">Audit logs</h3>
-          <div className="space-y-3">
-            {snapshot.logs.map((log) => (
-              <div key={log.id} className="rounded-2xl border border-border-subtle bg-surface-elevated p-4">
-                <p className="font-medium text-brand-primary">{log.action}</p>
-                <p className="mt-1 text-sm text-text-secondary">{log.entity_type}</p>
-                <p className="mt-2 text-xs uppercase tracking-[0.18em] text-text-muted">
-                  {formatDateTime(log.created_at)}
-                </p>
+        <div className="space-y-6">
+          <details className="rounded-2xl border border-border-subtle bg-surface-panel p-5">
+            <summary className="cursor-pointer text-sm font-medium text-brand-primary">
+              Diagnostic technique
+            </summary>
+            <div className="mt-4 space-y-4">
+              <div className="flex items-center justify-between gap-3">
+                <p className="font-display text-2xl text-brand-primary">Readiness système</p>
+                <Badge variant={readinessVariant}>{readiness.overall}</Badge>
               </div>
-            ))}
-          </div>
-        </Surface>
+              <div className="grid gap-3 md:grid-cols-2">
+                {readiness.checks.map((check) => (
+                  <div key={check.id} className="rounded-2xl border border-border-subtle bg-surface-elevated p-4">
+                    <div className="flex items-center justify-between gap-3">
+                      <p className="font-medium text-brand-primary">{check.label}</p>
+                      <Badge
+                        variant={
+                          check.state === "ready"
+                            ? "accent"
+                            : check.state === "warning"
+                              ? "primary"
+                              : "subtle"
+                        }
+                      >
+                        {check.state}
+                      </Badge>
+                    </div>
+                    <p className="mt-2 text-sm text-text-secondary">{check.detail}</p>
+                  </div>
+                ))}
+              </div>
+              <p className="text-xs uppercase tracking-[0.18em] text-text-muted">
+                Dernière vérification {formatDateTime(readiness.checkedAt)}
+              </p>
+            </div>
+          </details>
+
+          <details className="rounded-2xl border border-border-subtle bg-surface-panel p-5">
+            <summary className="cursor-pointer text-sm font-medium text-brand-primary">
+              Audit logs
+            </summary>
+            <div className="mt-4 space-y-3">
+              {snapshot.logs.map((log) => (
+                <div key={log.id} className="rounded-2xl border border-border-subtle bg-surface-elevated p-4">
+                  <p className="font-medium text-brand-primary">{log.action}</p>
+                  <p className="mt-1 text-sm text-text-secondary">{log.entity_type}</p>
+                  <p className="mt-2 text-xs uppercase tracking-[0.18em] text-text-muted">
+                    {formatDateTime(log.created_at)}
+                  </p>
+                </div>
+              ))}
+            </div>
+          </details>
+        </div>
       </div>
     </div>
   );

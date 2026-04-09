@@ -2,12 +2,11 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Menu, X } from "lucide-react";
+import { ChevronDown, Menu, Settings, ShieldCheck, X } from "lucide-react";
 import { useState } from "react";
 
 import { ThemeToggle } from "@/components/layout/theme-toggle";
 import { workspaceNavigation } from "@/lib/constants/navigation";
-import { aiFeatureEnabled } from "@/lib/features";
 import { initials } from "@/lib/utils/format";
 import { cn } from "@/lib/utils/cn";
 import { Button } from "@/components/ui/button";
@@ -22,13 +21,8 @@ type Props = {
 export function AppShell({ children, role, profileName, institution }: Props) {
   const pathname = usePathname();
   const [mobileOpen, setMobileOpen] = useState(false);
-  const navItems = workspaceNavigation.filter((item) => {
-    if (item.feature === "ai" && !aiFeatureEnabled) {
-      return false;
-    }
-
-    return !item.adminOnly || role !== "user";
-  });
+  const navItems = workspaceNavigation;
+  const isAdmin = role === "admin" || role === "superadmin";
 
   return (
     <div className="min-h-screen bg-surface-base text-text-primary">
@@ -37,10 +31,8 @@ export function AppShell({ children, role, profileName, institution }: Props) {
           <Link href="/dashboard" className="space-y-3">
             <p className="text-xs uppercase tracking-[0.28em] text-white/60">LAKHub</p>
             <div>
-              <h1 className="font-display text-3xl">Research Workspace</h1>
-              <p className="mt-2 text-sm text-white/70">
-                Pilotage académique, rédaction, collaboration et gouvernance dans un même environnement.
-              </p>
+              <h1 className="font-display text-3xl">Espace de recherche</h1>
+              <p className="mt-2 text-sm text-white/70">Rédiger, classer et piloter avec calme.</p>
             </div>
           </Link>
 
@@ -64,19 +56,6 @@ export function AppShell({ children, role, profileName, institution }: Props) {
               );
             })}
           </nav>
-
-          <div className="mt-auto rounded-2xl border border-white/12 bg-white/8 p-4">
-            <p className="text-xs uppercase tracking-[0.2em] text-white/55">Profil</p>
-            <div className="mt-3 flex items-center gap-3">
-              <div className="flex h-11 w-11 items-center justify-center rounded-full bg-white/12 font-semibold">
-                {initials(profileName)}
-              </div>
-              <div>
-                <p className="font-medium">{profileName ?? "Chercheur"}</p>
-                <p className="text-sm text-white/65">{institution ?? "Institution à renseigner"}</p>
-              </div>
-            </div>
-          </div>
         </aside>
 
         <div className="flex min-h-screen flex-1 flex-col">
@@ -99,12 +78,38 @@ export function AppShell({ children, role, profileName, institution }: Props) {
 
               <div className="flex items-center gap-3">
                 <ThemeToggle />
-                <Link
-                  href="/settings"
-                  className="rounded-full border border-border-subtle bg-surface-panel px-4 py-2 text-sm text-text-secondary transition hover:border-brand-accent hover:text-brand-accent"
-                >
-                  {profileName ?? "Compte"}
-                </Link>
+                <details className="relative">
+                  <summary className="flex cursor-pointer list-none items-center gap-3 rounded-full border border-border-subtle bg-surface-panel px-3 py-2 text-sm text-text-secondary transition hover:border-brand-accent hover:text-brand-accent">
+                    <span className="flex h-9 w-9 items-center justify-center rounded-full bg-brand-accent-soft font-semibold text-brand-primary">
+                      {initials(profileName)}
+                    </span>
+                    <span className="hidden text-left sm:block">
+                      <span className="block font-medium text-text-primary">{profileName ?? "Compte"}</span>
+                      <span className="block text-xs text-text-muted">
+                        {institution ?? (isAdmin ? "Administration disponible" : "Workspace personnel")}
+                      </span>
+                    </span>
+                    <ChevronDown className="h-4 w-4" />
+                  </summary>
+                  <div className="absolute right-0 z-50 mt-3 w-64 rounded-2xl border border-border-subtle bg-surface-panel p-2 shadow-soft">
+                    <Link
+                      className="flex items-center gap-3 rounded-xl px-3 py-3 text-sm text-text-secondary transition hover:bg-surface-elevated hover:text-brand-primary"
+                      href="/settings"
+                    >
+                      <Settings className="h-4 w-4" />
+                      Paramètres
+                    </Link>
+                    {isAdmin ? (
+                      <Link
+                        className="flex items-center gap-3 rounded-xl px-3 py-3 text-sm text-text-secondary transition hover:bg-surface-elevated hover:text-brand-primary"
+                        href="/admin"
+                      >
+                        <ShieldCheck className="h-4 w-4" />
+                        Administration
+                      </Link>
+                    ) : null}
+                  </div>
+                </details>
               </div>
             </div>
 

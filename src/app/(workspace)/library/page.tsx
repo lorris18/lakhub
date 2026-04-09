@@ -38,7 +38,7 @@ export default async function LibraryPage({
       <SectionHeading
         eyebrow="Bibliothèque"
         title="Corpus et références personnelles"
-        description="Métadonnées, DOI, projets, collections et tags sont rassemblés dans une bibliothèque de travail réellement structurée."
+        description="Une liste claire d’abord. L’import, le classement avancé et la taxonomie restent disponibles mais moins envahissants."
       />
 
       <div className="grid gap-6 xl:grid-cols-[1.1fr_0.9fr]">
@@ -102,70 +102,75 @@ export default async function LibraryPage({
                     ) : null}
                   </div>
 
-                  <form action={updateLibraryClassificationAction} className="mt-4 space-y-4 border-t border-border-subtle pt-4">
-                    <input name="itemId" type="hidden" value={item.id} />
+                  <details className="mt-4 rounded-2xl border border-border-subtle bg-surface-panel p-4">
+                    <summary className="cursor-pointer text-sm font-medium text-brand-primary">
+                      Classer cette source
+                    </summary>
+                    <form action={updateLibraryClassificationAction} className="mt-4 space-y-4">
+                      <input name="itemId" type="hidden" value={item.id} />
 
-                    {taxonomy.collections.length || taxonomy.tags.length ? (
-                      <div className="grid gap-4 lg:grid-cols-2">
-                        <fieldset className="space-y-2">
-                          <legend className="text-sm font-medium text-text-secondary">Collections</legend>
-                          {taxonomy.collections.length ? (
-                            taxonomy.collections.map((collection) => (
-                              <label
-                                key={`${item.id}-${collection.id}`}
-                                className="flex items-center gap-3 rounded-xl border border-border-subtle bg-surface-panel px-3 py-2 text-sm text-text-secondary"
-                              >
-                                <input
-                                  defaultChecked={item.collections.some((entry) => entry.id === collection.id)}
-                                  name="collectionIds"
-                                  type="checkbox"
-                                  value={collection.id}
-                                />
-                                <span>{collection.name}</span>
-                              </label>
-                            ))
-                          ) : (
-                            <p className="text-sm text-text-secondary">Aucune collection créée.</p>
-                          )}
-                        </fieldset>
+                      {taxonomy.collections.length || taxonomy.tags.length ? (
+                        <div className="grid gap-4 lg:grid-cols-2">
+                          <fieldset className="space-y-2">
+                            <legend className="text-sm font-medium text-text-secondary">Collections</legend>
+                            {taxonomy.collections.length ? (
+                              taxonomy.collections.map((collection) => (
+                                <label
+                                  key={`${item.id}-${collection.id}`}
+                                  className="flex items-center gap-3 rounded-xl border border-border-subtle bg-surface-elevated px-3 py-2 text-sm text-text-secondary"
+                                >
+                                  <input
+                                    defaultChecked={item.collections.some((entry) => entry.id === collection.id)}
+                                    name="collectionIds"
+                                    type="checkbox"
+                                    value={collection.id}
+                                  />
+                                  <span>{collection.name}</span>
+                                </label>
+                              ))
+                            ) : (
+                              <p className="text-sm text-text-secondary">Aucune collection créée.</p>
+                            )}
+                          </fieldset>
 
-                        <fieldset className="space-y-2">
-                          <legend className="text-sm font-medium text-text-secondary">Tags</legend>
-                          {taxonomy.tags.length ? (
-                            taxonomy.tags.map((tag) => (
-                              <label
-                                key={`${item.id}-${tag.id}`}
-                                className="flex items-center gap-3 rounded-xl border border-border-subtle bg-surface-panel px-3 py-2 text-sm text-text-secondary"
-                              >
-                                <input
-                                  defaultChecked={item.tags.some((entry) => entry.id === tag.id)}
-                                  name="tagIds"
-                                  type="checkbox"
-                                  value={tag.id}
-                                />
-                                <span>{tag.name}</span>
-                              </label>
-                            ))
-                          ) : (
-                            <p className="text-sm text-text-secondary">Aucun tag créé.</p>
-                          )}
-                        </fieldset>
+                          <fieldset className="space-y-2">
+                            <legend className="text-sm font-medium text-text-secondary">Tags</legend>
+                            {taxonomy.tags.length ? (
+                              taxonomy.tags.map((tag) => (
+                                <label
+                                  key={`${item.id}-${tag.id}`}
+                                  className="flex items-center gap-3 rounded-xl border border-border-subtle bg-surface-elevated px-3 py-2 text-sm text-text-secondary"
+                                >
+                                  <input
+                                    defaultChecked={item.tags.some((entry) => entry.id === tag.id)}
+                                    name="tagIds"
+                                    type="checkbox"
+                                    value={tag.id}
+                                  />
+                                  <span>{tag.name}</span>
+                                </label>
+                              ))
+                            ) : (
+                              <p className="text-sm text-text-secondary">Aucun tag créé.</p>
+                            )}
+                          </fieldset>
+                        </div>
+                      ) : (
+                        <p className="text-sm text-text-secondary">
+                          Créez d’abord des collections ou des tags pour classer cette source.
+                        </p>
+                      )}
+
+                      <div className="flex flex-wrap items-center justify-between gap-3">
+                        <p className="text-xs uppercase tracking-[0.18em] text-text-muted">
+                          Mise à jour {formatDate(item.updated_at)}
+                        </p>
+                        <Button type="submit" variant="secondary">
+                          Mettre à jour le classement
+                        </Button>
                       </div>
-                    ) : (
-                      <p className="text-sm text-text-secondary">
-                        Créez d’abord des collections ou des tags pour classer cette source.
-                      </p>
-                    )}
-
-                    <div className="flex flex-wrap items-center justify-between gap-3">
-                      <p className="text-xs uppercase tracking-[0.18em] text-text-muted">
-                        Mise à jour {formatDate(item.updated_at)}
-                      </p>
-                      <Button type="submit" variant="secondary">
-                        Mettre à jour le classement
-                      </Button>
-                    </div>
-                  </form>
+                    </form>
+                  </details>
                 </div>
               ))
             ) : (
@@ -180,63 +185,13 @@ export default async function LibraryPage({
         <div className="space-y-6">
           <Surface className="space-y-4">
             <div>
-              <p className="text-xs uppercase tracking-[0.2em] text-text-muted">Import de fichier</p>
-              <h3 className="mt-2 font-display text-2xl text-brand-primary">Importer un PDF, DOCX ou note</h3>
+              <p className="text-xs uppercase tracking-[0.2em] text-text-muted">Action principale</p>
+              <h3 className="mt-2 font-display text-2xl text-brand-primary">Ajouter une source</h3>
               <p className="mt-2 text-sm text-text-secondary">
-                Le fichier est téléversé dans le storage privé et rattaché à une fiche bibliothèque.
+                Une fiche légère pour entrer vite dans le corpus. Les options plus avancées restent repliées.
               </p>
             </div>
 
-            {hasServiceRoleEnv ? (
-              <form action={importLibraryFileAction} className="space-y-4">
-                <div className="rounded-2xl border border-border-subtle bg-surface-elevated p-4">
-                  <label className="block text-sm font-medium text-text-secondary" htmlFor="file">
-                    Fichier source
-                  </label>
-                  <input
-                    accept=".pdf,.doc,.docx,.txt,.md"
-                    className="mt-3 block w-full rounded-xl border border-border-subtle bg-surface-panel p-3 text-sm"
-                    id="file"
-                    name="file"
-                    required
-                    type="file"
-                  />
-                </div>
-                <Input name="title" placeholder="Titre optionnel (sinon nom du fichier)" />
-                <Input name="authors" placeholder="Auteurs séparés par des virgules" />
-                <Input name="doi" placeholder="DOI optionnel" />
-                <Textarea name="summary" placeholder="Résumé ou note de lecture courte" />
-                <Textarea name="abstract" placeholder="Abstract ou commentaire détaillé" />
-                <div className="space-y-2">
-                  <label className="text-sm font-medium text-text-secondary" htmlFor="importProjectId">
-                    Projet lié
-                  </label>
-                  <Select defaultValue="" id="importProjectId" name="projectId">
-                    <option value="">Aucun projet pour le moment</option>
-                    {projects.map((project) => (
-                      <option key={project.id} value={project.id}>
-                        {project.title}
-                      </option>
-                    ))}
-                  </Select>
-                </div>
-                <Button className="w-full" type="submit" variant="secondary">
-                  Importer le fichier
-                </Button>
-              </form>
-            ) : (
-              <div className="rounded-2xl border border-border-subtle bg-surface-elevated p-4 text-sm text-text-secondary">
-                L’import de fichier nécessite aussi `SUPABASE_SERVICE_ROLE_KEY` pour téléverser
-                vers le storage privé et enregistrer l’asset côté serveur.
-              </div>
-            )}
-          </Surface>
-
-          <Surface className="space-y-4">
-            <div>
-              <p className="text-xs uppercase tracking-[0.2em] text-text-muted">Saisie documentaire</p>
-              <h3 className="mt-2 font-display text-2xl text-brand-primary">Ajouter une source</h3>
-            </div>
             <form action={createLibraryItemAction} className="space-y-4">
               <Input name="title" placeholder="Titre" required />
               <Input name="authors" placeholder="Auteurs séparés par des virgules" />
@@ -267,7 +222,6 @@ export default async function LibraryPage({
                 </Select>
               </div>
               <Textarea name="summary" placeholder="Résumé synthétique" />
-              <Textarea name="abstract" placeholder="Résumé long / abstract" />
               <Button className="w-full" type="submit" variant="accent">
                 Ajouter à la bibliothèque
               </Button>
@@ -275,55 +229,121 @@ export default async function LibraryPage({
           </Surface>
 
           <Surface className="space-y-4">
-            <div className="flex items-center justify-between">
-              <h3 className="font-display text-2xl text-brand-primary">Collections</h3>
-              <Badge variant="primary">{taxonomy.collections.length}</Badge>
-            </div>
-            <div className="space-y-3">
-              {taxonomy.collections.length ? (
-                taxonomy.collections.map((collection) => (
-                  <div key={collection.id} className="rounded-2xl border border-border-subtle bg-surface-elevated p-4">
-                    <p className="font-medium text-brand-primary">{collection.name}</p>
-                    <p className="mt-1 text-sm text-text-secondary">
-                      {collection.description ?? "Sans description."}
-                    </p>
+            <details className="rounded-2xl border border-border-subtle bg-surface-elevated p-4" open={items.length === 0}>
+              <summary className="cursor-pointer text-sm font-medium text-brand-primary">
+                Importer un PDF, DOCX ou une note
+              </summary>
+              <div className="mt-4 space-y-4">
+                <p className="text-sm text-text-secondary">
+                  Le fichier est téléversé dans le storage privé et rattaché à une fiche bibliothèque.
+                </p>
+                {hasServiceRoleEnv ? (
+                  <form action={importLibraryFileAction} className="space-y-4">
+                    <div className="rounded-2xl border border-border-subtle bg-surface-panel p-4">
+                      <label className="block text-sm font-medium text-text-secondary" htmlFor="file">
+                        Fichier source
+                      </label>
+                      <input
+                        accept=".pdf,.doc,.docx,.txt,.md"
+                        className="mt-3 block w-full rounded-xl border border-border-subtle bg-surface-base p-3 text-sm"
+                        id="file"
+                        name="file"
+                        required
+                        type="file"
+                      />
+                    </div>
+                    <Input name="title" placeholder="Titre optionnel (sinon nom du fichier)" />
+                    <Input name="authors" placeholder="Auteurs séparés par des virgules" />
+                    <Input name="doi" placeholder="DOI optionnel" />
+                    <Textarea name="summary" placeholder="Résumé ou note de lecture courte" />
+                    <div className="space-y-2">
+                      <label className="text-sm font-medium text-text-secondary" htmlFor="importProjectId">
+                        Projet lié
+                      </label>
+                      <Select defaultValue="" id="importProjectId" name="projectId">
+                        <option value="">Aucun projet pour le moment</option>
+                        {projects.map((project) => (
+                          <option key={project.id} value={project.id}>
+                            {project.title}
+                          </option>
+                        ))}
+                      </Select>
+                    </div>
+                    <Button className="w-full" type="submit" variant="secondary">
+                      Importer le fichier
+                    </Button>
+                  </form>
+                ) : (
+                  <div className="rounded-2xl border border-border-subtle bg-surface-panel p-4 text-sm text-text-secondary">
+                    L’import nécessite `SUPABASE_SERVICE_ROLE_KEY` pour le storage privé.
                   </div>
-                ))
-              ) : (
-                <p className="text-sm text-text-secondary">Aucune collection pour le moment.</p>
-              )}
-            </div>
-            <form action={createCollectionAction} className="space-y-3 border-t border-border-subtle pt-4">
-              <Input name="name" placeholder="Nom de la collection" required />
-              <Textarea name="description" placeholder="Description courte" />
-              <Button type="submit" variant="secondary">
-                Créer la collection
-              </Button>
-            </form>
+                )}
+              </div>
+            </details>
           </Surface>
 
           <Surface className="space-y-4">
-            <div className="flex items-center justify-between">
-              <h3 className="font-display text-2xl text-brand-primary">Tags</h3>
-              <Badge variant="accent">{taxonomy.tags.length}</Badge>
-            </div>
-            <div className="flex flex-wrap gap-2">
-              {taxonomy.tags.length ? (
-                taxonomy.tags.map((tag) => (
-                  <Badge key={tag.id} variant="accent">
-                    {tag.name}
-                  </Badge>
-                ))
-              ) : (
-                <p className="text-sm text-text-secondary">Aucun tag pour le moment.</p>
-              )}
-            </div>
-            <form action={createTagAction} className="space-y-3 border-t border-border-subtle pt-4">
-              <Input name="name" placeholder="Nouveau tag" required />
-              <Button type="submit" variant="secondary">
-                Créer le tag
-              </Button>
-            </form>
+            <details className="rounded-2xl border border-border-subtle bg-surface-elevated p-4">
+              <summary className="cursor-pointer text-sm font-medium text-brand-primary">
+                Organisation avancée
+              </summary>
+              <div className="mt-4 space-y-6">
+                <div className="space-y-4">
+                  <div className="flex items-center justify-between">
+                    <h3 className="font-display text-2xl text-brand-primary">Collections</h3>
+                    <Badge variant="primary">{taxonomy.collections.length}</Badge>
+                  </div>
+                  <div className="space-y-3">
+                    {taxonomy.collections.length ? (
+                      taxonomy.collections.map((collection) => (
+                        <div
+                          key={collection.id}
+                          className="rounded-2xl border border-border-subtle bg-surface-panel p-4"
+                        >
+                          <p className="font-medium text-brand-primary">{collection.name}</p>
+                          <p className="mt-1 text-sm text-text-secondary">
+                            {collection.description ?? "Sans description."}
+                          </p>
+                        </div>
+                      ))
+                    ) : (
+                      <p className="text-sm text-text-secondary">Aucune collection pour le moment.</p>
+                    )}
+                  </div>
+                  <form action={createCollectionAction} className="space-y-3 border-t border-border-subtle pt-4">
+                    <Input name="name" placeholder="Nom de la collection" required />
+                    <Textarea name="description" placeholder="Description courte" />
+                    <Button type="submit" variant="secondary">
+                      Créer la collection
+                    </Button>
+                  </form>
+                </div>
+
+                <div className="space-y-4 border-t border-border-subtle pt-4">
+                  <div className="flex items-center justify-between">
+                    <h3 className="font-display text-2xl text-brand-primary">Tags</h3>
+                    <Badge variant="accent">{taxonomy.tags.length}</Badge>
+                  </div>
+                  <div className="flex flex-wrap gap-2">
+                    {taxonomy.tags.length ? (
+                      taxonomy.tags.map((tag) => (
+                        <Badge key={tag.id} variant="accent">
+                          {tag.name}
+                        </Badge>
+                      ))
+                    ) : (
+                      <p className="text-sm text-text-secondary">Aucun tag pour le moment.</p>
+                    )}
+                  </div>
+                  <form action={createTagAction} className="space-y-3 border-t border-border-subtle pt-4">
+                    <Input name="name" placeholder="Nouveau tag" required />
+                    <Button type="submit" variant="secondary">
+                      Créer le tag
+                    </Button>
+                  </form>
+                </div>
+              </div>
+            </details>
           </Surface>
         </div>
       </div>

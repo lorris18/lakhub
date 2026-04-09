@@ -1,38 +1,51 @@
 import Link from "next/link";
+import { redirect } from "next/navigation";
+import type { Route } from "next";
 
 import { LoginForm } from "@/components/forms/login-form";
 import { RecoverySessionHandler } from "@/components/forms/recovery-session-handler";
 import { SetupNotice } from "@/components/ui/setup-notice";
 import { Surface } from "@/components/ui/surface";
+import { getCurrentUser } from "@/lib/auth/session";
 import { hasPublicSupabaseEnv } from "@/lib/env";
 
 export default async function LoginPage({
   searchParams
 }: {
-  searchParams?: Promise<{ account?: string; recovery?: string }>;
+  searchParams?: Promise<{ account?: string; recovery?: string; email?: string; next?: string }>;
 }) {
+  function getSafeNextPath(value?: string) {
+    if (!value || !value.startsWith("/") || value.startsWith("//")) {
+      return "/dashboard";
+    }
+
+    return value;
+  }
+
+  function getSafeEmail(value?: string) {
+    return typeof value === "string" ? value : "";
+  }
+
   const params = await searchParams;
+  const nextPath = getSafeNextPath(params?.next);
+  const defaultEmail = getSafeEmail(params?.email);
+
+  if (hasPublicSupabaseEnv) {
+    const user = await getCurrentUser();
+    if (user) {
+      redirect(nextPath as Route);
+    }
+  }
   const isRecoveryFlow = params?.recovery === "1";
 
   return (
-    <main className="mx-auto grid min-h-[calc(100vh-73px)] max-w-7xl gap-8 px-4 py-10 sm:px-6 lg:grid-cols-[1.1fr_0.9fr] lg:px-8 lg:py-16">
-      <section className="flex flex-col justify-center space-y-6">
-        <p className="text-xs uppercase tracking-[0.24em] text-text-muted">Accès sécurisé</p>
-        <h2 className="font-display text-4xl text-brand-primary sm:text-5xl">
-          Entrez dans un espace académique réellement structuré.
-        </h2>
-        <p className="max-w-xl text-base leading-8 text-text-secondary">
-          Connexion Supabase, politiques d’accès strictes, navigation responsive et modules de
-          recherche pensés comme un vrai produit, pas comme une démo empilée.
-        </p>
-      </section>
-
+    <main className="mx-auto flex min-h-[calc(100vh-73px)] max-w-7xl items-center justify-center px-4 py-10 sm:px-6 lg:px-8">
       <Surface className="mx-auto w-full max-w-xl self-center p-6 sm:p-8">
-        <div className="space-y-2">
-          <p className="text-xs uppercase tracking-[0.2em] text-text-muted">Authentification</p>
-          <h3 className="font-display text-3xl text-brand-primary">Se connecter</h3>
+        <div className="space-y-3">
+          <p className="text-xs uppercase tracking-[0.24em] text-text-muted">LAKHub</p>
+          <h1 className="font-display text-3xl text-brand-primary sm:text-4xl">Se connecter</h1>
           <p className="text-sm text-text-secondary">
-            Utilisez votre compte LAKHub pour accéder au workspace, aux projets et aux documents.
+            Accédez au workspace académique, à vos projets et à vos documents.
           </p>
         </div>
         {params?.account === "deleted" ? (
@@ -43,17 +56,14 @@ export default async function LoginPage({
         <RecoverySessionHandler enabled={isRecoveryFlow} />
         <div className="mt-6">
           {hasPublicSupabaseEnv ? (
-            <LoginForm />
+            <LoginForm defaultEmail={defaultEmail} nextPath={nextPath} />
           ) : (
             <SetupNotice description="Renseignez les variables Supabase publiques pour activer la connexion." />
           )}
         </div>
-        <div className="mt-5 flex items-center justify-between text-sm text-text-secondary">
+        <div className="mt-5 flex items-center justify-end text-sm text-text-secondary">
           <Link href="/reset-password" className="hover:text-brand-accent">
             Mot de passe oublié
-          </Link>
-          <Link href="/" className="hover:text-brand-accent">
-            Retour à l’accueil
           </Link>
         </div>
       </Surface>

@@ -5,8 +5,14 @@ import type { FormEvent } from "react";
 import { createSupabaseBrowserClient } from "@/lib/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { PasswordField } from "@/components/ui/password-field";
 
-export function LoginForm() {
+type LoginFormProps = {
+  defaultEmail?: string;
+  nextPath?: string;
+};
+
+export function LoginForm({ defaultEmail, nextPath = "/dashboard" }: LoginFormProps) {
   const [error, setError] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
 
@@ -26,7 +32,7 @@ export function LoginForm() {
             return;
           }
 
-          window.location.assign("/dashboard");
+          window.location.assign(nextPath);
         } catch (caughtError) {
           setError(caughtError instanceof Error ? caughtError.message : "Connexion impossible.");
         }
@@ -47,6 +53,7 @@ export function LoginForm() {
         </label>
         <Input
           autoComplete="email"
+          defaultValue={defaultEmail}
           id="email"
           name="email"
           placeholder="vous@institution.edu"
@@ -58,7 +65,12 @@ export function LoginForm() {
         <label className="text-sm font-medium text-text-secondary" htmlFor="password">
           Mot de passe
         </label>
-        <Input autoComplete="current-password" id="password" name="password" required type="password" />
+        <PasswordField
+          autoComplete="current-password"
+          id="password"
+          name="password"
+          required
+        />
       </div>
       {error ? <p className="text-sm text-text-secondary">{error}</p> : null}
       <Button className="w-full" disabled={isPending} type="submit">

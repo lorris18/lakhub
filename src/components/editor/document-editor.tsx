@@ -1,13 +1,12 @@
 "use client";
 
-import Link from "next/link";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useEditor, EditorContent } from "@tiptap/react";
 import StarterKit from "@tiptap/starter-kit";
 import Placeholder from "@tiptap/extension-placeholder";
 import LinkExtension from "@tiptap/extension-link";
 import Underline from "@tiptap/extension-underline";
-import { Download, Save } from "lucide-react";
+import { Save } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -124,18 +123,6 @@ export function DocumentEditor({ documentId, title, content }: Props) {
             <Save className="mr-2 h-4 w-4" />
             Sauvegarder
           </Button>
-          <Link href={`/api/documents/${documentId}/export?format=pdf`}>
-            <Button variant="ghost">
-              <Download className="mr-2 h-4 w-4" />
-              PDF
-            </Button>
-          </Link>
-          <Link href={`/api/documents/${documentId}/export?format=docx`}>
-            <Button variant="ghost">
-              <Download className="mr-2 h-4 w-4" />
-              DOCX
-            </Button>
-          </Link>
         </div>
       </div>
 

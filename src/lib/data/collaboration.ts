@@ -64,6 +64,40 @@ export async function getCollaborationFeed() {
   };
 }
 
+export async function getDocumentReviewThread(documentId: string) {
+  await requireUser();
+  const supabase = await createSupabaseServerClient();
+
+  const [comments, suggestions] = await Promise.all([
+    supabase
+      .from("comments")
+      .select("id, body, anchor_id, status, created_at, version_id")
+      .eq("document_id", documentId)
+      .order("created_at", { ascending: false })
+      .limit(8),
+    supabase
+      .from("suggestions")
+      .select("id, original_text, proposed_text, anchor_id, status, created_at, version_id")
+      .eq("document_id", documentId)
+      .order("created_at", { ascending: false })
+      .limit(8)
+  ]);
+
+  if (comments.error) throw comments.error;
+  if (suggestions.error) throw suggestions.error;
+
+  return {
+    comments: comments.data.map((comment) => ({
+      ...comment,
+      status: dbCommentStatusToApp(comment.status)
+    })),
+    suggestions: suggestions.data.map((suggestion) => ({
+      ...suggestion,
+      status: dbSuggestionStatusToApp(suggestion.status)
+    }))
+  };
+}
+
 export async function createComment(input: CommentInput) {
   const user = await requireUser();
   const supabase = await createSupabaseServerClient();
