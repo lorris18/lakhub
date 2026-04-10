@@ -51,7 +51,7 @@ export function AppShell({
   const router = useRouter();
   const [mobileOpen, setMobileOpen] = useState(false);
   const isAdmin = role === "admin" || role === "superadmin";
-  const publicSiteUrl = process.env["NEXT_PUBLIC_PUBLIC_SITE_URL"] ?? "https://www.l-asim.com";
+  const publicSiteUrl = process.env["NEXT_PUBLIC_PUBLIC_SITE_URL"] ?? "https://lkirusha.com";
 
   const securityItem = useMemo(
     () =>

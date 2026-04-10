@@ -8,7 +8,7 @@ import { hasPublicSupabaseEnv } from "@/lib/env";
 import { getHubOrigin } from "@/lib/urls";
 
 export const metadata: Metadata = {
-  metadataBase: new URL(getHubOrigin("https://hub.l-asim.com")),
+  metadataBase: new URL(getHubOrigin("https://l-asim.com")),
   title: "LAKHub",
   description: "Espace privé de travail, de rédaction et de pilotage.",
   robots: {

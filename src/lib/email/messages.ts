@@ -62,7 +62,7 @@ function buildShell({
 export async function sendPlatformAccessEmail(
   input: AccessEmailInput
 ): Promise<EmailDeliveryResult> {
-  const loginUrl = `${getHubOrigin("https://hub.l-asim.com")}/login?email=${encodeURIComponent(input.email)}`;
+  const loginUrl = `${getHubOrigin("https://l-asim.com")}/login?email=${encodeURIComponent(input.email)}`;
   const content = buildShell({
     preheader: "Vos accès LAKHub sont prêts.",
     title: "Vos accès LAKHub",

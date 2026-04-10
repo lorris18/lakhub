@@ -12,7 +12,7 @@ const resetPasswordSchema = z.object({
 });
 
 function getRecoveryRedirectUrl() {
-  const callbackUrl = new URL("/auth/callback", getHubOrigin("https://hub.l-asim.com"));
+  const callbackUrl = new URL("/auth/callback", getHubOrigin("https://l-asim.com"));
   callbackUrl.searchParams.set("next", "/settings?recovery=1");
   return callbackUrl.toString();
 }

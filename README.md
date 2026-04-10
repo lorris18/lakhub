@@ -1,6 +1,8 @@
 # LAKHub
 
-Application privée de `hub.l-asim.com`.
+Application privée servie sur `l-asim.com`.
+
+Le site public associé est `https://lkirusha.com`.
 
 ## Périmètre
 

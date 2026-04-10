@@ -5,7 +5,7 @@ import { hubBrand } from "@/lib/constants/app";
 import { getHubOrigin, getPublicSiteOrigin } from "@/lib/urls";
 
 export const metadata: Metadata = {
-  metadataBase: new URL(getHubOrigin("https://hub.l-asim.com")),
+  metadataBase: new URL(getHubOrigin("https://l-asim.com")),
   title: hubBrand.name,
   description: hubBrand.description,
   robots: {
@@ -19,14 +19,15 @@ export default function AuthLayout({
 }: {
   children: React.ReactNode;
 }) {
-  const publicSiteOrigin = getPublicSiteOrigin("https://www.l-asim.com");
+  const publicSiteOrigin = getPublicSiteOrigin("https://lkirusha.com");
+  const privateHost = new URL(getHubOrigin("https://l-asim.com")).hostname;
 
   return (
     <div className="min-h-screen bg-surface-base">
       <header className="border-b border-border-subtle bg-surface-base/95 backdrop-blur">
         <div className="mx-auto flex max-w-6xl items-center justify-between gap-4 px-4 py-5 sm:px-6 lg:px-8">
           <Link href="/login" className="space-y-1">
-            <p className="text-xs uppercase tracking-[0.28em] text-text-muted">hub.l-asim.com</p>
+            <p className="text-xs uppercase tracking-[0.28em] text-text-muted">{privateHost}</p>
             <p className="font-display text-2xl text-brand-primary">{hubBrand.name}</p>
           </Link>
 

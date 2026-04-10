@@ -7,6 +7,7 @@ import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 import { appProjectRoleToDb, appProjectStatusToDb, dbProjectRoleToApp, dbProjectStatusToApp } from "@/lib/data/db-mappers";
 import { insertAuditLog, normalizeOptionalString, requireUser } from "@/lib/data/helpers";
+import { getHubOrigin } from "@/lib/urls";
 import type {
   DeliverableInput,
   InvitationActivationInput,
@@ -24,7 +25,7 @@ function invitationLoginPath(token: string, email: string) {
 }
 
 function invitationRedirectUrl(token: string, withPasswordSetup = false) {
-  const baseUrl = (env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000").replace(/\/$/, "");
+  const baseUrl = getHubOrigin("https://l-asim.com");
   const suffix = withPasswordSetup ? "?setup=1" : "";
   return `${baseUrl}/invitation/${token}${suffix}`;
 }
@@ -47,7 +48,7 @@ async function sendProjectInvitationEmail(email: string, token: string, hasExist
       email,
       hasExistingAccount,
       invitationUrl: hasExistingAccount
-        ? `${env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000"}/login?email=${encodeURIComponent(email)}&next=${encodeURIComponent(`/invitation/${token}`)}`
+        ? `${getHubOrigin("https://l-asim.com")}/login?email=${encodeURIComponent(email)}&next=${encodeURIComponent(`/invitation/${token}`)}`
         : invitationRedirectUrl(token, true)
     });
 
