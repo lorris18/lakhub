@@ -1,6 +1,14 @@
 import nodemailer from "nodemailer";
 
-import { env, hasEmailTransportEnv, hasResendEmailEnv, hasSmtpEmailEnv } from "@/lib/env";
+import {
+  env,
+  hasEmailTransportEnv,
+  hasResendEmailEnv,
+  hasSmtpEmailEnv,
+  resolvedEmailFromAddress,
+  resolvedEmailFromName,
+  resolvedEmailReplyTo
+} from "@/lib/env";
 
 export type EmailPayload = {
   to: string | string[];
@@ -18,12 +26,8 @@ export type EmailDeliveryResult = {
 };
 
 function getFromHeader() {
-  const address = env.EMAIL_FROM_ADDRESS;
-  const name = env.EMAIL_FROM_NAME?.trim() || "LAKHub";
-
-  if (!address) {
-    throw new Error("EMAIL_FROM_ADDRESS est requis pour envoyer des emails applicatifs.");
-  }
+  const address = resolvedEmailFromAddress;
+  const name = resolvedEmailFromName;
 
   return name ? `${name} <${address}>` : address;
 }
@@ -38,7 +42,7 @@ async function sendWithResend(payload: EmailPayload): Promise<EmailDeliveryResul
     body: JSON.stringify({
       from: getFromHeader(),
       to: Array.isArray(payload.to) ? payload.to : [payload.to],
-      reply_to: payload.replyTo ?? env.EMAIL_REPLY_TO ?? undefined,
+      reply_to: payload.replyTo ?? resolvedEmailReplyTo,
       subject: payload.subject,
       html: payload.html,
       text: payload.text
@@ -80,7 +84,7 @@ async function sendWithSmtp(payload: EmailPayload): Promise<EmailDeliveryResult>
   const info = await transporter.sendMail({
     from: getFromHeader(),
     to: payload.to,
-    replyTo: payload.replyTo ?? env.EMAIL_REPLY_TO ?? undefined,
+    replyTo: payload.replyTo ?? resolvedEmailReplyTo,
     subject: payload.subject,
     html: payload.html,
     text: payload.text

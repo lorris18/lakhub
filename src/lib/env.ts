@@ -55,6 +55,10 @@ export const env = parsed.success
       PERPLEXITY_API_KEY: process.env["PERPLEXITY_API_KEY"]
     });
 
+export const resolvedEmailFromAddress = env.EMAIL_FROM_ADDRESS ?? "lorris@lkirusha.com";
+export const resolvedEmailFromName = env.EMAIL_FROM_NAME?.trim() || "LAKHub";
+export const resolvedEmailReplyTo = env.EMAIL_REPLY_TO ?? resolvedEmailFromAddress;
+
 export const hasPublicSupabaseEnv = Boolean(
   env.NEXT_PUBLIC_SUPABASE_URL && env.NEXT_PUBLIC_SUPABASE_ANON_KEY
 );
@@ -64,15 +68,14 @@ export const hasServiceRoleEnv = Boolean(
 );
 
 export const hasResendEmailEnv = Boolean(
-  env.RESEND_API_KEY && env.EMAIL_FROM_ADDRESS
+  env.RESEND_API_KEY
 );
 
 export const hasSmtpEmailEnv = Boolean(
   env.SMTP_HOST &&
     env.SMTP_PORT &&
     env.SMTP_USER &&
-    env.SMTP_PASSWORD &&
-    env.EMAIL_FROM_ADDRESS
+    env.SMTP_PASSWORD
 );
 
 export const hasEmailTransportEnv = Boolean(hasResendEmailEnv || hasSmtpEmailEnv);

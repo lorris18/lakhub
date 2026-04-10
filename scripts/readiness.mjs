@@ -52,11 +52,11 @@ const smtpHost = process.env.SMTP_HOST;
 const smtpPort = process.env.SMTP_PORT;
 const smtpUser = process.env.SMTP_USER;
 const smtpPassword = process.env.SMTP_PASSWORD;
-const emailFromAddress = process.env.EMAIL_FROM_ADDRESS;
+const emailFromAddress = process.env.EMAIL_FROM_ADDRESS || "lorris@lkirusha.com";
 const aiFeatureEnabled = process.env.NEXT_PUBLIC_ENABLE_AI === "true";
 const hasAppEmailTransport = Boolean(
-  (resendApiKey && emailFromAddress) ||
-    (smtpHost && smtpPort && smtpUser && smtpPassword && emailFromAddress)
+  resendApiKey ||
+    (smtpHost && smtpPort && smtpUser && smtpPassword)
 );
 
 pushCheck(

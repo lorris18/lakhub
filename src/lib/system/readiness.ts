@@ -4,7 +4,8 @@ import {
   hasPublicSupabaseEnv,
   hasResendEmailEnv,
   hasServiceRoleEnv,
-  hasSmtpEmailEnv
+  hasSmtpEmailEnv,
+  resolvedEmailFromAddress
 } from "@/lib/env";
 import { aiFeatureEnabled } from "@/lib/features";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
@@ -31,7 +32,7 @@ function summarizeReadiness(checks: ReadinessCheck[]): ReadinessState {
 }
 
 export async function getSystemReadiness() {
-  const emailSender = env.EMAIL_FROM_ADDRESS ?? "non configuré";
+  const emailSender = resolvedEmailFromAddress;
   const checks: ReadinessCheck[] = [
     {
       id: "app-url",
@@ -65,7 +66,7 @@ export async function getSystemReadiness() {
         ? `Transport Resend configuré pour invitations et réinitialisations. Expéditeur: ${emailSender}.`
         : hasSmtpEmailEnv
           ? `Transport SMTP configuré pour invitations et réinitialisations. Expéditeur: ${emailSender}.`
-          : "Aucun transport email applicatif configuré. Les accès plateforme ne peuvent pas envoyer d’email applicatif et les autres flux dépendent encore du mailer Supabase Auth."
+          : `Aucun transport email applicatif configuré. L’identité prévue reste ${emailSender}, mais les accès plateforme ne peuvent pas encore envoyer d’email applicatif et les autres flux dépendent encore du mailer Supabase Auth.`
     },
     {
       id: "ai-scope",
