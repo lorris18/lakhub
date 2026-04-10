@@ -73,7 +73,7 @@ export default async function InvitationPage({
         </p>
         <p className="mt-2 text-sm text-text-secondary">Statut: {invitation.data.status}</p>
         <p className="mt-2 text-sm text-text-secondary">
-          {projectId ? `Projet concerné: ${projectTitle}` : "Projet concerné: espace de recherche"}
+          {projectId ? `Projet concerné: ${projectTitle}` : "Projet concerné: workspace privé"}
         </p>
         <p className="mt-2 text-sm text-text-secondary">
           Expiration: <strong>{new Date(invitation.data.expires_at).toLocaleString("fr-FR")}</strong>
@@ -91,7 +91,7 @@ export default async function InvitationPage({
           emailMatchesInvitation ? (
             showPasswordSetup ? (
               <>
-                <div className="mt-6 rounded-2xl border border-brand-accent/20 bg-brand-accent-soft/60 p-4 text-sm text-text-secondary">
+                <div className="mt-6 rounded-2xl border border-status-warning/20 bg-status-warning-soft/65 p-4 text-sm text-text-secondary">
                   Votre session d’invitation est ouverte. Définissez maintenant votre mot de passe
                   pour finaliser votre accès personnel à LAKHub.
                 </div>
@@ -100,7 +100,7 @@ export default async function InvitationPage({
             ) : (
               <form action={acceptInvitationAction} className="mt-6">
               <input name="token" type="hidden" value={token} />
-              <Button type="submit" variant="accent">
+              <Button type="submit" variant="primary">
                 Rejoindre le projet
               </Button>
               </form>
@@ -120,7 +120,7 @@ export default async function InvitationPage({
         ) : (
           <>
             {resolvedSearchParams.session === "1" ? (
-              <div className="mt-6 rounded-2xl border border-brand-accent/20 bg-brand-accent-soft/60 p-4 text-sm text-text-secondary">
+              <div className="mt-6 rounded-2xl border border-status-warning/20 bg-status-warning-soft/65 p-4 text-sm text-text-secondary">
                 La session d’invitation a bien été ouverte. Vous pouvez finaliser votre accès.
               </div>
             ) : null}

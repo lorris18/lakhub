@@ -9,13 +9,17 @@ const buttonVariants = cva(
     variants: {
       variant: {
         primary:
-          "border-transparent bg-brand-primary text-white hover:bg-[#162346] dark:hover:bg-[#314984]",
+          "border-transparent bg-brand-primary text-white hover:bg-[#0b2237] dark:hover:bg-[#d9e2ec] dark:hover:text-[#102a43]",
         secondary:
-          "border-border-strong bg-surface-panel text-text-primary hover:border-brand-primary hover:text-brand-primary",
+          "border-border-strong bg-transparent text-brand-primary hover:border-brand-primary hover:bg-surface-elevated",
         accent:
-          "border-transparent bg-brand-accent text-white hover:bg-[#08595f] dark:hover:bg-[#25767d]",
+          "border-transparent bg-brand-accent text-brand-primary hover:bg-[#b9912f]",
+        success:
+          "border-transparent bg-status-success text-white hover:bg-[#275847]",
+        danger:
+          "border-transparent bg-status-danger text-white hover:bg-[#923f3f]",
         ghost:
-          "border-transparent bg-transparent text-text-secondary hover:bg-brand-accent-soft hover:text-brand-accent"
+          "border-transparent bg-transparent text-text-secondary hover:bg-surface-elevated hover:text-brand-primary"
       },
       size: {
         sm: "h-9 px-3 text-sm",
@@ -42,4 +46,3 @@ export function Button({ className, variant, size, type = "button", ...props }: 
     />
   );
 }
-

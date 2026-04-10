@@ -63,7 +63,7 @@ export default async function WorkPage({
 
           return (
             <Link key={view.id} href={`/work?view=${view.id}`}>
-              <Button size="sm" variant={isActive ? "accent" : "ghost"}>
+              <Button size="sm" variant={isActive ? "primary" : "ghost"}>
                 {view.label}
               </Button>
             </Link>
@@ -141,7 +141,7 @@ export default async function WorkPage({
                 </Select>
                 <Input name="dueDate" type="date" />
               </div>
-              <Button className="w-full" type="submit" variant="accent">
+              <Button className="w-full" type="submit" variant="primary">
                 Créer le projet
               </Button>
             </form>
@@ -209,7 +209,7 @@ export default async function WorkPage({
                 <option value="thesis">Mémoire / Thèse</option>
                 <option value="report">Rapport</option>
               </Select>
-              <Button className="w-full" type="submit" variant="accent">
+              <Button className="w-full" type="submit" variant="primary">
                 Ouvrir dans l’éditeur
               </Button>
             </form>

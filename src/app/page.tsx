@@ -9,5 +9,5 @@ export default async function HubEntryPage() {
   }
 
   const user = await getCurrentUser();
-  redirect(user ? "/dashboard" : "/login");
+  redirect(user?.user_metadata?.["must_change_password"] === true ? "/settings?force-password-change=1" : user ? "/dashboard" : "/login");
 }

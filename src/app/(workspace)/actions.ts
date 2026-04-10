@@ -26,6 +26,7 @@ import {
   importLibraryFile,
   updateLibraryClassification
 } from "@/lib/data/library";
+import { validateLibraryImportFile } from "@/lib/library/import-validation";
 import {
   acceptInvitation,
   addDeliverable,
@@ -139,15 +140,15 @@ export async function acceptInvitationAction(formData: FormData) {
 
 export async function createLibraryItemAction(formData: FormData) {
   const payload = libraryItemSchema.parse({
-    title: formData.get("title"),
-    authors: formData.get("authors"),
+    title: getString(formData, "title"),
+    authors: getString(formData, "authors"),
     publicationYear: formData.get("publicationYear") || undefined,
-    doi: formData.get("doi"),
-    summary: formData.get("summary"),
-    abstract: formData.get("abstract"),
-    itemType: formData.get("itemType"),
-    projectId: formData.get("projectId"),
-    url: formData.get("url")
+    doi: getString(formData, "doi"),
+    summary: getString(formData, "summary"),
+    abstract: getString(formData, "abstract"),
+    itemType: getString(formData, "itemType"),
+    projectId: getString(formData, "projectId"),
+    url: getString(formData, "url")
   });
 
   await createLibraryItem(payload);
@@ -181,26 +182,6 @@ export async function updateLibraryClassificationAction(formData: FormData) {
   });
 
   await updateLibraryClassification(payload);
-  revalidatePath("/library");
-}
-
-export async function importLibraryFileAction(formData: FormData) {
-  const file = formData.get("file");
-
-  if (!(file instanceof File) || file.size === 0) {
-    throw new Error("Fichier PDF, DOCX ou note requis.");
-  }
-
-  const payload = libraryImportSchema.parse({
-    title: formData.get("title"),
-    authors: formData.get("authors"),
-    summary: formData.get("summary"),
-    abstract: formData.get("abstract"),
-    doi: formData.get("doi"),
-    projectId: formData.get("projectId")
-  });
-
-  await importLibraryFile(payload, file);
   revalidatePath("/library");
 }
 
@@ -358,6 +339,11 @@ export type InviteUserActionState = {
   temporaryPassword?: string;
 };
 
+export type LibraryImportActionState = {
+  status: "idle" | "error" | "success";
+  message?: string;
+};
+
 export async function deleteOwnAccountAction(
   _previousState: DeleteAccountActionState,
   formData: FormData
@@ -423,15 +409,52 @@ export async function inviteUserAction(
 
     return {
       status: "success",
-      message:
-        "Le compte a été créé avec un mot de passe provisoire. L’utilisateur devra le modifier à sa première connexion.",
-      temporaryPassword: invite.temporaryPassword
+      message: invite.delivery.delivered
+        ? invite.mode === "updated"
+          ? "L’accès a été réinitialisé. L’email avec identifiant, mot de passe temporaire et lien de connexion a été envoyé."
+          : "Le compte a été créé. L’email avec identifiant, mot de passe temporaire et lien de connexion a été envoyé."
+        : invite.mode === "updated"
+          ? "L’accès a été réinitialisé, mais l’email n’a pas pu être envoyé. Utilisez provisoirement le mot de passe ci-dessous par canal sécurisé."
+          : "Le compte a été créé, mais l’email n’a pas pu être envoyé. Utilisez provisoirement le mot de passe ci-dessous par canal sécurisé.",
+      temporaryPassword: invite.delivery.delivered ? undefined : invite.temporaryPassword
     };
   } catch (error) {
     return {
       status: "error",
       message:
         error instanceof Error ? error.message : "La création de l’accès utilisateur est impossible."
+    };
+  }
+}
+
+export async function importLibraryFileAction(
+  _previousState: LibraryImportActionState,
+  formData: FormData
+): Promise<LibraryImportActionState> {
+  try {
+    const file = formData.get("file");
+    validateLibraryImportFile(file as File);
+
+    const payload = libraryImportSchema.parse({
+      title: getString(formData, "title"),
+      authors: getString(formData, "authors"),
+      summary: getString(formData, "summary"),
+      abstract: getString(formData, "abstract"),
+      doi: getString(formData, "doi"),
+      projectId: getString(formData, "projectId")
+    });
+
+    const imported = await importLibraryFile(payload, file as File);
+    revalidatePath("/library");
+
+    return {
+      status: "success",
+      message: `${imported.title} a bien été importé dans la bibliothèque.`
+    };
+  } catch (error) {
+    return {
+      status: "error",
+      message: error instanceof Error ? error.message : "Import impossible."
     };
   }
 }

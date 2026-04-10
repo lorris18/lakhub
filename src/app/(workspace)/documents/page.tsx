@@ -22,7 +22,7 @@ export default async function DocumentsPage() {
     <div className="space-y-8">
       <SectionHeading
         eyebrow="Atelier de rédaction"
-        title="Documents académiques actifs"
+        title="Documents en cours"
         description="Créez notes, articles, chapitres, mémoires et rapports, puis ouvrez l’éditeur riche avec autosave et versioning."
       />
 
@@ -80,7 +80,7 @@ export default async function DocumentsPage() {
                 ))}
               </Select>
             </div>
-            <Button className="w-full" type="submit" variant="accent">
+            <Button className="w-full" type="submit" variant="primary">
               Ouvrir dans l’éditeur
             </Button>
           </form>

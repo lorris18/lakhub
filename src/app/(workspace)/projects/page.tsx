@@ -23,7 +23,7 @@ export default async function ProjectsPage() {
     <div className="space-y-8">
       <SectionHeading
         eyebrow="Projets"
-        title="Gérer les travaux de recherche"
+        title="Piloter les projets"
         description="Chaque projet centralise objectifs, problématique, livrables, membres et documents associés."
       />
 
@@ -115,7 +115,7 @@ export default async function ProjectsPage() {
               </label>
               <Textarea id="objectives" name="objectives" />
             </div>
-            <Button className="w-full" type="submit" variant="accent">
+            <Button className="w-full" type="submit" variant="primary">
               Créer le projet
             </Button>
           </form>

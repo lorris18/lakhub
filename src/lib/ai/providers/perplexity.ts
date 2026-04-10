@@ -32,7 +32,7 @@ export class PerplexityProvider implements AiProviderClient {
           {
             role: "system",
             content:
-              "Tu es un assistant de recherche académique. Réponds en français, cite des sources web récentes et distingue clairement faits et interprétations."
+              "Tu es un assistant de recherche. Reponds en francais, cite des sources web recentes et distingue clairement faits et interpretations."
           },
           {
             role: "user",
@@ -62,4 +62,3 @@ export class PerplexityProvider implements AiProviderClient {
     };
   }
 }
-

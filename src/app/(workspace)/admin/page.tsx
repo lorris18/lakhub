@@ -19,17 +19,17 @@ export default async function AdminPage() {
 
   const readinessVariant =
     readiness.overall === "ready"
-      ? "accent"
+      ? "success"
       : readiness.overall === "warning"
-        ? "primary"
-        : "subtle";
+        ? "warning"
+        : "danger";
 
   return (
     <div className="space-y-8">
       <SectionHeading
         eyebrow="Admin"
-        title="Supervision produit"
-        description="Gestion des utilisateurs d’abord. Les diagnostics techniques et l’historique détaillé passent en second plan."
+        title="Administration du workspace"
+        description="Gestion des accès, des rôles et de la disponibilité technique de LAKHub."
       />
 
       <div className="grid gap-4 sm:grid-cols-2">
@@ -56,35 +56,34 @@ export default async function AdminPage() {
           <h3 className="font-display text-2xl text-brand-primary">Gestion des rôles</h3>
           <div className="space-y-3">
             {snapshot.users.map((user) => (
-              <form
+              <div
                 key={user.id}
-                action={updateUserRoleAction}
-                className="flex flex-col gap-3 rounded-2xl border border-border-subtle bg-surface-elevated p-4 lg:flex-row lg:items-center lg:justify-between"
+                className="space-y-3 rounded-2xl border border-border-subtle bg-surface-elevated p-4"
               >
-                <input name="userId" type="hidden" value={user.id} />
-                <div>
-                  <p className="font-medium text-brand-primary">{user.full_name ?? user.email}</p>
-                  <p className="text-sm text-text-secondary">{user.email}</p>
-                </div>
-                <div className="flex flex-wrap items-center gap-3">
-                  <Select defaultValue={user.role} name="role">
-                    <option value="user">User</option>
-                    <option value="admin">Admin</option>
-                    <option value="superadmin">Superadmin</option>
-                  </Select>
-                  <Button type="submit" variant="secondary">
-                    Mettre à jour
+                <form action={updateUserRoleAction} className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
+                  <input name="userId" type="hidden" value={user.id} />
+                  <div>
+                    <p className="font-medium text-brand-primary">{user.full_name ?? user.email}</p>
+                    <p className="text-sm text-text-secondary">{user.email}</p>
+                  </div>
+                  <div className="flex flex-wrap items-center gap-3">
+                    <Select defaultValue={user.role} name="role">
+                      <option value="user">User</option>
+                      <option value="admin">Admin</option>
+                      <option value="superadmin">Superadmin</option>
+                    </Select>
+                    <Button type="submit" variant="secondary">
+                      Mettre à jour
+                    </Button>
+                  </div>
+                </form>
+                <form action={deleteUserAction}>
+                  <input name="userId" type="hidden" value={user.id} />
+                  <Button type="submit" variant="danger">
+                    Supprimer cet accès
                   </Button>
-                </div>
-              </form>
-            ))}
-            {snapshot.users.map((user) => (
-              <form key={`${user.id}-delete`} action={deleteUserAction}>
-                <input name="userId" type="hidden" value={user.id} />
-                <Button type="submit" variant="ghost">
-                  Supprimer {user.full_name ?? user.email}
-                </Button>
-              </form>
+                </form>
+              </div>
             ))}
           </div>
         </Surface>
@@ -107,10 +106,10 @@ export default async function AdminPage() {
                       <Badge
                         variant={
                           check.state === "ready"
-                            ? "accent"
+                            ? "success"
                             : check.state === "warning"
-                              ? "primary"
-                              : "subtle"
+                              ? "warning"
+                              : "danger"
                         }
                       >
                         {check.state}

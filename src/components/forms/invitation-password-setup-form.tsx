@@ -97,9 +97,9 @@ export function InvitationPasswordSetupForm({
           required
         />
       </div>
-      {message ? <p className="text-sm text-brand-accent">{message}</p> : null}
-      {error ? <p className="text-sm text-text-secondary">{error}</p> : null}
-      <Button className="w-full" disabled={isPending} type="submit" variant="accent">
+      {message ? <p className="text-sm text-status-success">{message}</p> : null}
+      {error ? <p className="text-sm text-status-danger">{error}</p> : null}
+      <Button className="w-full" disabled={isPending} type="submit" variant="primary">
         {isPending ? "Finalisation..." : "Définir mon mot de passe et entrer"}
       </Button>
     </form>

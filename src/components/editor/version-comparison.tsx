@@ -34,19 +34,19 @@ export function VersionComparison({ versions, diff, summary }: Props) {
           </h3>
           {previous && next ? (
             <p className="mt-1 text-sm text-text-secondary">
-              {previous.title} comparee a {next.title}
+              {previous.title} comparée à {next.title}
             </p>
           ) : (
             <p className="mt-1 text-sm text-text-secondary">
-              Creez au moins deux versions pour obtenir une comparaison detaillee.
+              Créez au moins deux versions pour obtenir une comparaison détaillée.
             </p>
           )}
         </div>
 
         <div className="flex flex-wrap gap-2">
-          <Badge variant="accent">Ajouts {summary.added}</Badge>
-          <Badge variant="default">Suppressions {summary.removed}</Badge>
-          <Badge variant="subtle">Stables {summary.unchanged}</Badge>
+          <Badge variant="success">Ajouts {summary.added}</Badge>
+          <Badge variant="danger">Suppressions {summary.removed}</Badge>
+          <Badge variant="archived">Stables {summary.unchanged}</Badge>
         </div>
       </div>
 
@@ -57,9 +57,9 @@ export function VersionComparison({ versions, diff, summary }: Props) {
               key={`${segment.kind}-${index}`}
               className={
                 segment.kind === "added"
-                  ? "rounded-2xl border border-brand-accent/20 bg-brand-accent-soft p-4 text-sm text-text-primary"
+                  ? "rounded-2xl border border-status-success/20 bg-status-success-soft p-4 text-sm text-text-primary"
                   : segment.kind === "removed"
-                    ? "rounded-2xl border border-border-strong bg-surface-elevated p-4 text-sm text-text-secondary"
+                    ? "rounded-2xl border border-status-danger/20 bg-status-danger-soft p-4 text-sm text-text-primary"
                     : "rounded-2xl border border-border-subtle bg-surface-panel p-4 text-sm text-text-secondary"
               }
             >
@@ -68,7 +68,7 @@ export function VersionComparison({ versions, diff, summary }: Props) {
                   ? "Ajout"
                   : segment.kind === "removed"
                     ? "Suppression"
-                    : "Inchange"}
+                    : "Stable"}
               </p>
               <p className="whitespace-pre-wrap leading-7">{segment.value}</p>
             </div>

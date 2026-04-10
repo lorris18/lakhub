@@ -120,14 +120,14 @@ export function InvitationAccountForm({ email, token }: InvitationAccountFormPro
           required
         />
       </div>
-      {message ? <p className="text-sm text-brand-accent">{message}</p> : null}
-      {error ? <p className="text-sm text-text-secondary">{error}</p> : null}
+      {message ? <p className="text-sm text-status-success">{message}</p> : null}
+      {error ? <p className="text-sm text-status-danger">{error}</p> : null}
       {loginPath ? (
         <a className="text-sm font-medium text-brand-accent" href={loginPath}>
           Se connecter avec ce compte existant
         </a>
       ) : null}
-      <Button className="w-full" disabled={isPending} type="submit" variant="accent">
+      <Button className="w-full" disabled={isPending} type="submit" variant="primary">
         {isPending ? "Activation..." : "Créer mon accès et rejoindre le projet"}
       </Button>
     </form>

@@ -67,7 +67,7 @@ export default async function DashboardPage() {
           {resumeDocument ? (
             <div className="flex flex-wrap gap-3">
               <Link href={`/documents/${resumeDocument.id}`}>
-                <Button variant="accent">Ouvrir le document</Button>
+                <Button variant="primary">Ouvrir le document</Button>
               </Link>
               <Link href="/work?view=documents">
                 <Button variant="ghost">Voir les travaux</Button>
@@ -76,7 +76,7 @@ export default async function DashboardPage() {
           ) : resumeProject ? (
             <div className="flex flex-wrap gap-3">
               <Link href={`/projects/${resumeProject.id}`}>
-                <Button variant="accent">Ouvrir le projet</Button>
+                <Button variant="primary">Ouvrir le projet</Button>
               </Link>
               <Link href="/work?view=projects">
                 <Button variant="ghost">Voir les travaux</Button>
@@ -88,7 +88,7 @@ export default async function DashboardPage() {
               description="Créez un projet ou un document pour démarrer l’espace de travail."
               action={
                 <Link href="/work?view=projects">
-                  <Button variant="accent">Créer un projet</Button>
+                  <Button variant="primary">Créer un projet</Button>
                 </Link>
               }
             />

@@ -1,7 +1,8 @@
 import { randomUUID } from "node:crypto";
 import { createClient } from "@supabase/supabase-js";
 
-import { env, hasPublicSupabaseEnv } from "@/lib/env";
+import { env, hasEmailTransportEnv, hasPublicSupabaseEnv } from "@/lib/env";
+import { sendProjectInvitationEmail as sendCustomProjectInvitationEmail } from "@/lib/email/messages";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 import { appProjectRoleToDb, appProjectStatusToDb, dbProjectRoleToApp, dbProjectStatusToApp } from "@/lib/data/db-mappers";
@@ -41,6 +42,28 @@ async function lookupAccountByEmail(email: string) {
 }
 
 async function sendProjectInvitationEmail(email: string, token: string, hasExistingAccount: boolean) {
+  if (hasEmailTransportEnv) {
+    const delivery = await sendCustomProjectInvitationEmail({
+      email,
+      hasExistingAccount,
+      invitationUrl: hasExistingAccount
+        ? `${env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000"}/login?email=${encodeURIComponent(email)}&next=${encodeURIComponent(`/invitation/${token}`)}`
+        : invitationRedirectUrl(token, true)
+    });
+
+    if (delivery.delivered) {
+      return {
+        delivery: hasExistingAccount ? ("signin-link-sent" as const) : ("invite-sent" as const),
+        reason: null
+      };
+    }
+
+    return {
+      delivery: "manual" as const,
+      reason: delivery.reason
+    };
+  }
+
   if (!hasPublicSupabaseEnv) {
     return {
       delivery: "manual" as const,

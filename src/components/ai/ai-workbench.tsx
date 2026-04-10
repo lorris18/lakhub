@@ -25,10 +25,10 @@ type Props = {
 const quickTemplates = [
   {
     label: "Plan d'article",
-    title: "Generer un plan academique",
+    title: "Generer un plan detaille",
     mode: "writing" as const,
     prompt:
-      "Propose un plan academique detaille avec sections, sous-sections et logique argumentative pour ce sujet."
+      "Propose un plan detaille avec sections, sous-sections et logique argumentative pour ce sujet."
   },
   {
     label: "Problematique",

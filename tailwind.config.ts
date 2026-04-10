@@ -21,12 +21,17 @@ const config: Config = {
         "brand-accent": "var(--brand-accent)",
         "brand-accent-soft": "var(--brand-accent-soft)",
         "status-success": "var(--status-success)",
+        "status-success-soft": "var(--status-success-soft)",
         "status-warning": "var(--status-warning)",
-        "status-danger": "var(--status-danger)"
+        "status-warning-soft": "var(--status-warning-soft)",
+        "status-danger": "var(--status-danger)",
+        "status-danger-soft": "var(--status-danger-soft)",
+        "status-archived": "var(--status-archived)",
+        "status-archived-soft": "var(--status-archived-soft)"
       },
       fontFamily: {
-        display: ["Source Serif 4", "Georgia", "serif"],
-        sans: ["Source Sans 3", "Segoe UI", "sans-serif"]
+        display: ["Merriweather", "Source Serif 4", "Georgia", "serif"],
+        sans: ["Inter", "Source Sans 3", "Segoe UI", "sans-serif"]
       },
       boxShadow: {
         soft: "0 18px 40px rgba(19, 31, 59, 0.08)",
@@ -44,4 +49,3 @@ const config: Config = {
 };
 
 export default config;
-

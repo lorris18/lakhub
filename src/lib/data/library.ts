@@ -4,6 +4,7 @@ import path from "node:path";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 import { insertAuditLog, normalizeOptionalString, requireUser } from "@/lib/data/helpers";
+import { validateLibraryImportFile } from "@/lib/library/import-validation";
 import type {
   CollectionInput,
   LibraryClassificationInput,
@@ -275,6 +276,7 @@ export async function updateLibraryClassification(input: LibraryClassificationIn
 export async function importLibraryFile(input: LibraryImportInput, file: File) {
   const user = await requireUser();
   const admin = createSupabaseAdminClient();
+  validateLibraryImportFile(file);
 
   const fileName = file.name || `source-${randomUUID()}`;
   const safeName = fileName.replace(/[^a-zA-Z0-9._-]/g, "-");
@@ -293,48 +295,57 @@ export async function importLibraryFile(input: LibraryImportInput, file: File) {
 
   const title = normalizeOptionalString(input.title) ?? fileName.replace(path.extname(fileName), "");
 
-  const itemInsert = await admin
-    .from("library_items")
-    .insert({
+  try {
+    const itemInsert = await admin
+      .from("library_items")
+      .insert({
+        owner_user_id: user.id,
+        title,
+        authors: normalizeAuthors(input.authors),
+        doi: normalizeOptionalString(input.doi),
+        summary: normalizeOptionalString(input.summary),
+        abstract: normalizeOptionalString(input.abstract),
+        item_type: fileType,
+        project_id: normalizeOptionalString(input.projectId),
+        metadata: {
+          uploaded_file_name: fileName,
+          uploaded_mime_type: file.type || null,
+          storage_path: assetPath,
+          source_kind: "uploaded_file"
+        }
+      })
+      .select("id, title")
+      .single();
+
+    if (itemInsert.error) {
+      throw itemInsert.error;
+    }
+
+    const assetInsert = await admin.from("assets").insert({
       owner_user_id: user.id,
-      title,
-      authors: normalizeAuthors(input.authors),
-      doi: normalizeOptionalString(input.doi),
-      summary: normalizeOptionalString(input.summary),
-      abstract: normalizeOptionalString(input.abstract),
-      item_type: fileType,
-      project_id: normalizeOptionalString(input.projectId),
-      metadata: {
-        uploaded_file_name: fileName,
-        uploaded_mime_type: file.type || null,
-        storage_path: assetPath,
-        source_kind: "uploaded_file"
-      }
-    })
-    .select("id")
-    .single();
+      library_item_id: itemInsert.data.id,
+      bucket: "documents",
+      path: assetPath,
+      mime_type: file.type || null,
+      size_bytes: file.size
+    });
 
-  if (itemInsert.error) {
-    throw itemInsert.error;
+    if (assetInsert.error) {
+      throw assetInsert.error;
+    }
+
+    await insertAuditLog("library.import", "library_item", itemInsert.data.id, {
+      fileName,
+      fileType
+    });
+
+    return {
+      id: itemInsert.data.id,
+      title: itemInsert.data.title,
+      fileName
+    };
+  } catch (error) {
+    await admin.storage.from("documents").remove([assetPath]);
+    throw error;
   }
-
-  const assetInsert = await admin.from("assets").insert({
-    owner_user_id: user.id,
-    library_item_id: itemInsert.data.id,
-    bucket: "documents",
-    path: assetPath,
-    mime_type: file.type || null,
-    size_bytes: file.size
-  });
-
-  if (assetInsert.error) {
-    throw assetInsert.error;
-  }
-
-  await insertAuditLog("library.import", "library_item", itemInsert.data.id, {
-    fileName,
-    fileType
-  });
-
-  return itemInsert.data;
 }

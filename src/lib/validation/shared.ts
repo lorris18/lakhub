@@ -1,5 +1,30 @@
 import { z } from "zod";
 
+function normalizeNullishToEmptyString(value: unknown) {
+  return value == null ? "" : value;
+}
+
+function optionalTextField(max: number) {
+  return z.preprocess(
+    normalizeNullishToEmptyString,
+    z.string().max(max).optional().or(z.literal(""))
+  );
+}
+
+function optionalUuidField() {
+  return z.preprocess(
+    normalizeNullishToEmptyString,
+    z.string().uuid().optional().or(z.literal(""))
+  );
+}
+
+function optionalUrlField() {
+  return z.preprocess(
+    normalizeNullishToEmptyString,
+    z.string().url().optional().or(z.literal(""))
+  );
+}
+
 export const projectStatusSchema = z.enum([
   "planning",
   "active",
@@ -66,23 +91,23 @@ export const invitationAcceptSchema = z.object({
 
 export const libraryItemSchema = z.object({
   title: z.string().min(2).max(180),
-  authors: z.string().max(500).optional().or(z.literal("")),
+  authors: optionalTextField(500),
   publicationYear: z.coerce.number().int().min(1900).max(2100).optional(),
-  doi: z.string().max(255).optional().or(z.literal("")),
-  summary: z.string().max(2000).optional().or(z.literal("")),
-  abstract: z.string().max(4000).optional().or(z.literal("")),
+  doi: optionalTextField(255),
+  summary: optionalTextField(2000),
+  abstract: optionalTextField(4000),
   itemType: z.enum(["pdf", "docx", "note", "web", "book", "article"]).default("article"),
-  projectId: z.string().uuid().optional().or(z.literal("")),
-  url: z.string().url().optional().or(z.literal(""))
+  projectId: optionalUuidField(),
+  url: optionalUrlField()
 });
 
 export const libraryImportSchema = z.object({
-  title: z.string().max(180).optional().or(z.literal("")),
-  authors: z.string().max(500).optional().or(z.literal("")),
-  summary: z.string().max(2000).optional().or(z.literal("")),
-  abstract: z.string().max(4000).optional().or(z.literal("")),
-  doi: z.string().max(255).optional().or(z.literal("")),
-  projectId: z.string().uuid().optional().or(z.literal(""))
+  title: optionalTextField(180),
+  authors: optionalTextField(500),
+  summary: optionalTextField(2000),
+  abstract: optionalTextField(4000),
+  doi: optionalTextField(255),
+  projectId: optionalUuidField()
 });
 
 export const collectionSchema = z.object({

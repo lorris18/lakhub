@@ -2,7 +2,6 @@ import {
   createCollectionAction,
   createLibraryItemAction,
   createTagAction,
-  importLibraryFileAction,
   updateLibraryClassificationAction
 } from "@/app/(workspace)/actions";
 import { Badge } from "@/components/ui/badge";
@@ -12,6 +11,7 @@ import { SectionHeading } from "@/components/ui/section-heading";
 import { Select } from "@/components/ui/select";
 import { Surface } from "@/components/ui/surface";
 import { Textarea } from "@/components/ui/textarea";
+import { LibraryImportForm } from "@/components/library/library-import-form";
 import { hasPublicSupabaseEnv, hasServiceRoleEnv } from "@/lib/env";
 import { listLibraryItems, listLibraryTaxonomy } from "@/lib/data/library";
 import { listProjects } from "@/lib/data/projects";
@@ -222,7 +222,7 @@ export default async function LibraryPage({
                 </Select>
               </div>
               <Textarea name="summary" placeholder="Résumé synthétique" />
-              <Button className="w-full" type="submit" variant="accent">
+              <Button className="w-full" type="submit" variant="primary">
                 Ajouter à la bibliothèque
               </Button>
             </form>
@@ -238,41 +238,7 @@ export default async function LibraryPage({
                   Le fichier est téléversé dans le storage privé et rattaché à une fiche bibliothèque.
                 </p>
                 {hasServiceRoleEnv ? (
-                  <form action={importLibraryFileAction} className="space-y-4">
-                    <div className="rounded-2xl border border-border-subtle bg-surface-panel p-4">
-                      <label className="block text-sm font-medium text-text-secondary" htmlFor="file">
-                        Fichier source
-                      </label>
-                      <input
-                        accept=".pdf,.doc,.docx,.txt,.md"
-                        className="mt-3 block w-full rounded-xl border border-border-subtle bg-surface-base p-3 text-sm"
-                        id="file"
-                        name="file"
-                        required
-                        type="file"
-                      />
-                    </div>
-                    <Input name="title" placeholder="Titre optionnel (sinon nom du fichier)" />
-                    <Input name="authors" placeholder="Auteurs séparés par des virgules" />
-                    <Input name="doi" placeholder="DOI optionnel" />
-                    <Textarea name="summary" placeholder="Résumé ou note de lecture courte" />
-                    <div className="space-y-2">
-                      <label className="text-sm font-medium text-text-secondary" htmlFor="importProjectId">
-                        Projet lié
-                      </label>
-                      <Select defaultValue="" id="importProjectId" name="projectId">
-                        <option value="">Aucun projet pour le moment</option>
-                        {projects.map((project) => (
-                          <option key={project.id} value={project.id}>
-                            {project.title}
-                          </option>
-                        ))}
-                      </Select>
-                    </div>
-                    <Button className="w-full" type="submit" variant="secondary">
-                      Importer le fichier
-                    </Button>
-                  </form>
+                  <LibraryImportForm projects={projects} />
                 ) : (
                   <div className="rounded-2xl border border-border-subtle bg-surface-panel p-4 text-sm text-text-secondary">
                     L’import nécessite `SUPABASE_SERVICE_ROLE_KEY` pour le storage privé.
@@ -322,12 +288,12 @@ export default async function LibraryPage({
                 <div className="space-y-4 border-t border-border-subtle pt-4">
                   <div className="flex items-center justify-between">
                     <h3 className="font-display text-2xl text-brand-primary">Tags</h3>
-                    <Badge variant="accent">{taxonomy.tags.length}</Badge>
+                    <Badge variant="warning">{taxonomy.tags.length}</Badge>
                   </div>
                   <div className="flex flex-wrap gap-2">
                     {taxonomy.tags.length ? (
                       taxonomy.tags.map((tag) => (
-                        <Badge key={tag.id} variant="accent">
+                        <Badge key={tag.id} variant="warning">
                           {tag.name}
                         </Badge>
                       ))

@@ -2,6 +2,7 @@ import { insertAuditLog, requireProfile } from "@/lib/data/helpers";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 import { requirePlatformAdmin } from "@/lib/permissions/guards";
+import { sendPlatformAccessEmail } from "@/lib/email/messages";
 import { generateTemporaryPassword } from "@/lib/security/passwords";
 import type { Database } from "@/lib/supabase/database.types";
 
@@ -50,6 +51,21 @@ export async function updateUserRole(userId: string, role: Database["public"]["E
   if (error) throw error;
 }
 
+async function lookupPlatformUserByEmail(email: string) {
+  const admin = createSupabaseAdminClient();
+  const { data, error } = await admin
+    .from("users")
+    .select("id, email, full_name, role")
+    .ilike("email", email)
+    .maybeSingle();
+
+  if (error) {
+    throw error;
+  }
+
+  return data;
+}
+
 export async function invitePlatformUser(
   email: string,
   fullName?: string | null,
@@ -61,34 +77,82 @@ export async function invitePlatformUser(
   const admin = createSupabaseAdminClient();
   const normalizedEmail = email.trim().toLowerCase();
   const temporaryPassword = temporaryPasswordInput?.trim() || generateTemporaryPassword();
-  const invitation = await admin.auth.admin.createUser({
-    email: normalizedEmail,
-    password: temporaryPassword,
-    email_confirm: true,
-    user_metadata: {
-      full_name: fullName ?? undefined,
-      must_change_password: true
+  const existingUser = await lookupPlatformUserByEmail(normalizedEmail);
+
+  let userId = existingUser?.id ?? null;
+  const fullNameValue = fullName?.trim() || existingUser?.full_name || undefined;
+  if (existingUser?.id) {
+    const existingAuth = await admin.auth.admin.getUserById(existingUser.id);
+
+    if (existingAuth.error || !existingAuth.data.user) {
+      throw existingAuth.error ?? new Error("Compte existant introuvable côté Auth.");
     }
-  });
 
-  if (invitation.error) {
-    throw invitation.error;
+    const authUpdate = await admin.auth.admin.updateUserById(existingUser.id, {
+      email: normalizedEmail,
+      password: temporaryPassword,
+      email_confirm: true,
+      user_metadata: {
+        ...existingAuth.data.user.user_metadata,
+        full_name: fullNameValue,
+        must_change_password: true
+      }
+    });
+
+    if (authUpdate.error) {
+      throw authUpdate.error;
+    }
+  } else {
+    const invitation = await admin.auth.admin.createUser({
+      email: normalizedEmail,
+      password: temporaryPassword,
+      email_confirm: true,
+      user_metadata: {
+        full_name: fullNameValue,
+        must_change_password: true
+      }
+    });
+
+    if (invitation.error) {
+      throw invitation.error;
+    }
+
+    userId = invitation.data.user?.id ?? null;
   }
-
-  const userId = invitation.data.user?.id;
 
   if (!userId) {
     throw new Error("Création du compte impossible.");
   }
 
+  const profileUpdate = await admin
+    .from("users")
+    .update({
+      email: normalizedEmail,
+      full_name: fullNameValue ?? null
+    })
+    .eq("id", userId);
+
+  if (profileUpdate.error) {
+    throw profileUpdate.error;
+  }
+
+  const delivery = await sendPlatformAccessEmail({
+    email: normalizedEmail,
+    temporaryPassword,
+    fullName: fullNameValue
+  });
+
   await insertAuditLog("admin.user.invite", "user", userId, {
     email: normalizedEmail,
     mustChangePassword: true,
-    delivery: "temporary-password"
+    delivery: delivery.delivered ? "email-sent" : "manual",
+    mode: existingUser ? "updated" : "created"
   });
 
   return {
-    temporaryPassword
+    mode: existingUser ? ("updated" as const) : ("created" as const),
+    temporaryPassword,
+    delivery
   };
 }
 

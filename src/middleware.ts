@@ -28,7 +28,28 @@ export async function middleware(request: NextRequest) {
     }
   });
 
-  await supabase.auth.getUser();
+  const {
+    data: { user }
+  } = await supabase.auth.getUser();
+
+  const requiresPasswordChange = user?.user_metadata?.["must_change_password"] === true;
+  const pathname = request.nextUrl.pathname;
+  const passwordPolicyPath = "/api/settings/password-policy";
+  const allowedPasswordChangePaths = new Set(["/settings", passwordPolicyPath, "/auth/callback"]);
+
+  if (requiresPasswordChange && !allowedPasswordChangePaths.has(pathname)) {
+    if (pathname.startsWith("/api")) {
+      return NextResponse.json(
+        { message: "Changement du mot de passe requis avant de poursuivre." },
+        { status: 403 }
+      );
+    }
+
+    const redirectUrl = request.nextUrl.clone();
+    redirectUrl.pathname = "/settings";
+    redirectUrl.searchParams.set("force-password-change", "1");
+    return NextResponse.redirect(redirectUrl);
+  }
 
   return response;
 }

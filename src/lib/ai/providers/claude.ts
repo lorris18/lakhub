@@ -26,7 +26,7 @@ export class ClaudeProvider implements AiProviderClient {
         model: "claude-3-5-sonnet-20241022",
         max_tokens: 1600,
         system:
-          "Tu es un assistant académique exigeant. Rédige en français clair, rigoureux, structuré, sans inventer de sources.",
+          "Tu es un assistant exigeant. Redige en francais clair, rigoureux, structure, sans inventer de sources.",
         messages: [
           {
             role: "user",
@@ -50,4 +50,3 @@ export class ClaudeProvider implements AiProviderClient {
     };
   }
 }
-

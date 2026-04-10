@@ -23,9 +23,9 @@ export default async function VersioningPage() {
   return (
     <div className="space-y-8">
       <SectionHeading
-        eyebrow="Versioning"
-        title="Traçabilité des documents"
-        description="Chaque document peut être versionné puis soumis. Cette vue donne un aperçu des dernières itérations disponibles."
+        eyebrow="Versions"
+        title="Traçabilité et itérations"
+        description="Chaque document peut être versionné puis soumis. Cette vue met en avant les écarts et les itérations récentes."
       />
 
       <div className="space-y-5">
@@ -48,7 +48,7 @@ export default async function VersioningPage() {
                 <div key={version.id} className="rounded-2xl border border-border-subtle bg-surface-elevated p-4">
                   <div className="flex items-center justify-between">
                     <p className="font-medium text-brand-primary">Version {version.version_number}</p>
-                    <Badge variant="accent">{version.title}</Badge>
+                    <Badge variant="primary">{version.title}</Badge>
                   </div>
                   <p className="mt-3 text-sm text-text-secondary">{version.summary ?? "Résumé non renseigné."}</p>
                 </div>

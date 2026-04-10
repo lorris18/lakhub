@@ -86,9 +86,9 @@ export function PasswordChangeForm({ required = false }: PasswordChangeFormProps
         placeholder="Confirmer le mot de passe"
         required
       />
-      {message ? <p className="text-sm text-brand-accent">{message}</p> : null}
-      {error ? <p className="text-sm text-text-secondary">{error}</p> : null}
-      <Button disabled={isPending} type="submit" variant="secondary">
+      {message ? <p className="text-sm text-status-success">{message}</p> : null}
+      {error ? <p className="text-sm text-status-danger">{error}</p> : null}
+      <Button disabled={isPending} type="submit" variant={required ? "primary" : "secondary"}>
         {isPending ? "Mise à jour..." : required ? "Définir mon mot de passe définitif" : "Changer le mot de passe"}
       </Button>
     </form>

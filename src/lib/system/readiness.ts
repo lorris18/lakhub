@@ -1,4 +1,11 @@
-import { env, hasPublicSupabaseEnv, hasServiceRoleEnv } from "@/lib/env";
+import {
+  env,
+  hasEmailTransportEnv,
+  hasPublicSupabaseEnv,
+  hasResendEmailEnv,
+  hasServiceRoleEnv,
+  hasSmtpEmailEnv
+} from "@/lib/env";
 import { aiFeatureEnabled } from "@/lib/features";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 
@@ -24,6 +31,7 @@ function summarizeReadiness(checks: ReadinessCheck[]): ReadinessState {
 }
 
 export async function getSystemReadiness() {
+  const emailSender = env.EMAIL_FROM_ADDRESS ?? "non configuré";
   const checks: ReadinessCheck[] = [
     {
       id: "app-url",
@@ -48,6 +56,16 @@ export async function getSystemReadiness() {
       detail: hasServiceRoleEnv
         ? "SUPABASE_SERVICE_ROLE_KEY est disponible pour les opérations sensibles."
         : "SUPABASE_SERVICE_ROLE_KEY manquante."
+    },
+    {
+      id: "email-transport",
+      label: "Emails applicatifs",
+      state: hasEmailTransportEnv ? "ready" : "warning",
+      detail: hasResendEmailEnv
+        ? `Transport Resend configuré pour invitations et réinitialisations. Expéditeur: ${emailSender}.`
+        : hasSmtpEmailEnv
+          ? `Transport SMTP configuré pour invitations et réinitialisations. Expéditeur: ${emailSender}.`
+          : "Aucun transport email applicatif configuré. Les accès plateforme ne peuvent pas envoyer d’email applicatif et les autres flux dépendent encore du mailer Supabase Auth."
     },
     {
       id: "ai-scope",

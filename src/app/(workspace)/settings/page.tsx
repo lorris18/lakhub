@@ -41,7 +41,7 @@ export default async function SettingsPage({ searchParams }: SettingsPageProps) 
       />
 
       {isRecoveryMode ? (
-        <Surface className="border-brand-accent/25 bg-brand-accent-soft/70">
+        <Surface className="border-status-warning/25 bg-status-warning-soft/80">
           <p className="text-xs uppercase tracking-[0.2em] text-text-muted">Récupération</p>
           <h3 className="mt-2 font-display text-2xl text-brand-primary">
             Définissez un nouveau mot de passe
@@ -54,7 +54,7 @@ export default async function SettingsPage({ searchParams }: SettingsPageProps) 
       ) : null}
 
       {requiresPasswordChange ? (
-        <Surface className="border-brand-accent/25 bg-brand-accent-soft/70">
+        <Surface className="border-status-warning/25 bg-status-warning-soft/80">
           <p className="text-xs uppercase tracking-[0.2em] text-text-muted">Sécurité</p>
           <h3 className="mt-2 font-display text-2xl text-brand-primary">
             Changement du mot de passe requis
@@ -104,7 +104,7 @@ export default async function SettingsPage({ searchParams }: SettingsPageProps) 
                 Recevoir les notifications email
               </label>
             </div>
-            <Button type="submit" variant="accent">
+            <Button type="submit" variant="primary">
               Enregistrer les paramètres
             </Button>
           </form>
@@ -121,7 +121,7 @@ export default async function SettingsPage({ searchParams }: SettingsPageProps) 
           </div>
           <div className="border-t border-border-subtle pt-4">
             <h4 className="font-medium text-brand-primary">Zone sensible</h4>
-            <div className="mt-3 rounded-2xl border border-brand-accent/20 bg-brand-accent-soft/60 p-4">
+            <div className="mt-3 rounded-2xl border border-status-warning/20 bg-status-warning-soft/65 p-4">
               {hasServiceRoleEnv ? (
                 <AccountDeletionForm email={data.profile.email} />
               ) : (

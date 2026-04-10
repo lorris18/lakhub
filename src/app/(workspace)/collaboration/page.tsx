@@ -44,7 +44,7 @@ export default async function CollaborationPage() {
                 <div key={comment.id} className="rounded-2xl border border-border-subtle bg-surface-elevated p-4">
                   <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
                     <p className="font-medium text-brand-primary">{comment.document_title}</p>
-                    <Badge variant={comment.status === "resolved" ? "accent" : "default"}>
+                    <Badge variant={comment.status === "resolved" ? "success" : "warning"}>
                       {comment.status}
                     </Badge>
                   </div>
@@ -76,10 +76,10 @@ export default async function CollaborationPage() {
                     <Badge
                       variant={
                         suggestion.status === "accepted"
-                          ? "accent"
+                          ? "success"
                           : suggestion.status === "rejected"
-                            ? "subtle"
-                            : "default"
+                            ? "archived"
+                            : "warning"
                       }
                     >
                       {suggestion.status}
@@ -91,31 +91,16 @@ export default async function CollaborationPage() {
                   <p className="mt-1 text-sm text-brand-primary">{suggestion.proposed_text}</p>
                   <form action={updateSuggestionStatusAction} className="mt-3 flex flex-wrap gap-2">
                     <input name="suggestionId" type="hidden" value={suggestion.id} />
-                    <button
-                      className="rounded-xl border border-transparent bg-brand-accent px-3 py-2 text-sm font-semibold text-white transition hover:bg-[#08595f]"
-                      name="status"
-                      type="submit"
-                      value="accepted"
-                    >
+                    <Button name="status" type="submit" value="accepted" variant="success">
                       Accepter
-                    </button>
-                    <button
-                      className="rounded-xl border border-border-strong bg-surface-panel px-3 py-2 text-sm font-semibold text-text-primary transition hover:border-brand-primary hover:text-brand-primary"
-                      name="status"
-                      type="submit"
-                      value="rejected"
-                    >
+                    </Button>
+                    <Button name="status" type="submit" value="rejected" variant="danger">
                       Rejeter
-                    </button>
+                    </Button>
                     {suggestion.status !== "open" ? (
-                      <button
-                        className="rounded-xl border border-transparent bg-transparent px-3 py-2 text-sm font-semibold text-text-secondary transition hover:bg-brand-accent-soft hover:text-brand-accent"
-                        name="status"
-                        type="submit"
-                        value="open"
-                      >
+                      <Button name="status" type="submit" value="open" variant="secondary">
                         Rouvrir
-                      </button>
+                      </Button>
                     ) : null}
                   </form>
                 </div>
@@ -156,7 +141,7 @@ export default async function CollaborationPage() {
                   </Select>
                 </div>
                 <Textarea name="body" placeholder="Commentaire" required />
-                <Button type="submit" variant="accent">
+                <Button type="submit" variant="primary">
                   Ajouter le commentaire
                 </Button>
               </form>
