@@ -52,6 +52,7 @@ export function AppShell({
   const [mobileOpen, setMobileOpen] = useState(false);
   const isAdmin = role === "admin" || role === "superadmin";
   const publicSiteUrl = process.env["NEXT_PUBLIC_PUBLIC_SITE_URL"] ?? "https://lkirusha.com";
+  const isRestrictedRoute = mustChangePassword && pathname !== "/settings";
 
   const securityItem = useMemo(
     () =>
@@ -76,10 +77,10 @@ export function AppShell({
     : getWorkspaceContext(pathname);
 
   useEffect(() => {
-    if (mustChangePassword && pathname !== "/settings") {
+    if (isRestrictedRoute) {
       router.replace("/settings?force-password-change=1");
     }
-  }, [mustChangePassword, pathname, router]);
+  }, [isRestrictedRoute, router]);
 
   return (
     <div className="min-h-screen bg-surface-base text-text-primary">
@@ -310,7 +311,32 @@ export function AppShell({
             ) : null}
           </header>
 
-          <main className="flex-1 px-4 py-6 sm:px-6 lg:px-8">{children}</main>
+          <main className="flex-1 px-4 py-6 sm:px-6 lg:px-8">
+            {isRestrictedRoute ? (
+              <div className="mx-auto max-w-3xl rounded-3xl border border-status-warning/25 bg-status-warning-soft/80 p-8 shadow-soft">
+                <div className="flex items-start gap-4">
+                  <div className="rounded-2xl bg-brand-accent-soft p-3 text-brand-primary">
+                    <LockKeyhole className="h-5 w-5" />
+                  </div>
+                  <div className="space-y-3">
+                    <p className="text-xs uppercase tracking-[0.22em] text-text-muted">Sécurité</p>
+                    <h3 className="font-display text-3xl text-brand-primary">
+                      Finalisez votre mot de passe
+                    </h3>
+                    <p className="max-w-2xl text-sm leading-7 text-text-secondary">
+                      Votre accès a été créé avec un mot de passe provisoire. Tant que le mot de passe
+                      définitif n’est pas enregistré, LAKHub bloque l’accès normal au workspace.
+                    </p>
+                    <Button onClick={() => router.replace("/settings?force-password-change=1")}>
+                      Ouvrir les paramètres de sécurité
+                    </Button>
+                  </div>
+                </div>
+              </div>
+            ) : (
+              children
+            )}
+          </main>
         </div>
       </div>
     </div>
