@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { notFound } from "next/navigation";
 
 import { addDeliverableAction, createInvitationAction, deleteProjectAction, updateProjectAction } from "@/app/(workspace)/actions";
 import { Button } from "@/components/ui/button";
@@ -7,7 +8,8 @@ import { SectionHeading } from "@/components/ui/section-heading";
 import { Select } from "@/components/ui/select";
 import { Surface } from "@/components/ui/surface";
 import { Textarea } from "@/components/ui/textarea";
-import { hasPublicSupabaseEnv } from "@/lib/env";
+import { requireCurrentUser } from "@/lib/auth/session";
+import { isSupabaseNotFoundError } from "@/lib/errors/user-facing";
 import { getProjectDetail } from "@/lib/data/projects";
 import { formatDate } from "@/lib/utils/format";
 
@@ -18,13 +20,21 @@ export default async function ProjectDetailPage({
   params: Promise<{ projectId: string }>;
   searchParams?: Promise<{ invite?: string }>;
 }) {
-  if (!hasPublicSupabaseEnv) {
-    return null;
-  }
-
+  await requireCurrentUser();
   const { projectId } = await params;
   const resolvedSearchParams = (await searchParams) ?? {};
-  const detail = await getProjectDetail(projectId);
+  let detail;
+
+  try {
+    detail = await getProjectDetail(projectId);
+  } catch (error) {
+    if (isSupabaseNotFoundError(error)) {
+      notFound();
+    }
+
+    throw error;
+  }
+
   const members = detail.members.map((member) => {
     const user = Array.isArray(member.users) ? member.users[0] ?? null : member.users ?? null;
     return { ...member, user };

@@ -4,8 +4,10 @@ import { useState, useTransition } from "react";
 
 import { createSupabaseBrowserClient } from "@/lib/supabase/client";
 import { Button } from "@/components/ui/button";
+import { FeedbackBanner } from "@/components/ui/feedback-banner";
 import { Input } from "@/components/ui/input";
 import { PasswordField } from "@/components/ui/password-field";
+import { getUserFacingError } from "@/lib/errors/user-facing";
 
 type InvitationAccountFormProps = {
   email: string;
@@ -17,6 +19,7 @@ export function InvitationAccountForm({ email, token }: InvitationAccountFormPro
   const [message, setMessage] = useState<string | null>(null);
   const [loginPath, setLoginPath] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
+  const errorCopy = error ? getUserFacingError({ message: error }, "invitation") : null;
 
   async function onSubmit(formData: FormData) {
     setError(null);
@@ -120,12 +123,22 @@ export function InvitationAccountForm({ email, token }: InvitationAccountFormPro
           required
         />
       </div>
-      {message ? <p className="text-sm text-status-success">{message}</p> : null}
-      {error ? <p className="text-sm text-status-danger">{error}</p> : null}
-      {loginPath ? (
-        <a className="text-sm font-medium text-brand-accent" href={loginPath}>
-          Se connecter avec ce compte existant
-        </a>
+      {message ? (
+        <FeedbackBanner description={message} title="Activation en cours" variant="success" />
+      ) : null}
+      {errorCopy ? (
+        <FeedbackBanner
+          action={
+            loginPath ? (
+              <a className="text-sm font-medium text-brand-accent" href={loginPath}>
+                Se connecter avec ce compte existant
+              </a>
+            ) : undefined
+          }
+          description={errorCopy.description}
+          title={errorCopy.title}
+          variant="danger"
+        />
       ) : null}
       <Button className="w-full" disabled={isPending} type="submit" variant="primary">
         {isPending ? "Activation..." : "Créer mon accès et rejoindre le projet"}

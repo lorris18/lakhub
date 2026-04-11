@@ -4,10 +4,13 @@ import { acceptInvitationAction } from "@/app/(workspace)/actions";
 import { InvitationAccountForm } from "@/components/forms/invitation-account-form";
 import { InvitationPasswordSetupForm } from "@/components/forms/invitation-password-setup-form";
 import { InvitationSessionHandler } from "@/components/forms/invitation-session-handler";
+import { FeedbackBanner } from "@/components/ui/feedback-banner";
+import { StateScreen } from "@/components/ui/state-screen";
 import { Surface } from "@/components/ui/surface";
 import { SetupNotice } from "@/components/ui/setup-notice";
 import { getCurrentUser } from "@/lib/auth/session";
 import { hasServiceRoleEnv } from "@/lib/env";
+import { getUserFacingError } from "@/lib/errors/user-facing";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 import { Button } from "@/components/ui/button";
 
@@ -30,34 +33,80 @@ export default async function InvitationPage({
   }
 
   const supabase = createSupabaseAdminClient();
-  const invitation = await supabase
+  const invitationResult = await supabase
     .from("invitations")
     .select("id, email, role, status, expires_at, projects(id, title)")
     .eq("token", token)
-    .single();
+    .maybeSingle();
 
-  if (invitation.error) {
-    throw invitation.error;
+  if (invitationResult.error) {
+    const copy = getUserFacingError(invitationResult.error, "invitation");
+
+    return (
+      <StateScreen
+        eyebrow="Invitation"
+        title={copy.title}
+        description={copy.description}
+        variant="danger"
+        action={
+          <Link href="/login">
+            <Button variant="primary">Aller à la connexion</Button>
+          </Link>
+        }
+      />
+    );
   }
+
+  if (!invitationResult.data) {
+    return (
+      <StateScreen
+        eyebrow="Invitation"
+        title="Invitation introuvable"
+        description="Ce lien n’est plus valide ou ne correspond plus à une invitation active. Demandez un nouveau lien si nécessaire."
+        variant="warning"
+        action={
+          <Link href="/login">
+            <Button variant="primary">Aller à la connexion</Button>
+          </Link>
+        }
+      />
+    );
+  }
+
+  const invitation = invitationResult.data;
 
   const user = await getCurrentUser();
   const existingAccount = await supabase
     .from("users")
     .select("id")
-    .ilike("email", invitation.data.email)
+    .ilike("email", invitation.email)
     .maybeSingle();
 
   if (existingAccount.error) {
-    throw existingAccount.error;
+    const copy = getUserFacingError(existingAccount.error, "invitation");
+
+    return (
+      <StateScreen
+        eyebrow="Invitation"
+        title={copy.title}
+        description={copy.description}
+        variant="danger"
+        action={
+          <Link href="/login">
+            <Button variant="primary">Aller à la connexion</Button>
+          </Link>
+        }
+      />
+    );
   }
 
   const emailMatchesInvitation =
-    user?.email?.trim().toLowerCase() === invitation.data.email.trim().toLowerCase();
+    user?.email?.trim().toLowerCase() === invitation.email.trim().toLowerCase();
   const showPasswordSetup = resolvedSearchParams.setup === "1";
-  const loginPath = `/login?email=${encodeURIComponent(invitation.data.email)}&next=${encodeURIComponent(`/invitation/${token}`)}`;
-  const projectTitle = invitation.data.projects?.[0]?.title ?? "Projet de recherche";
-  const projectId = invitation.data.projects?.[0]?.id;
-  const isExpired = new Date(invitation.data.expires_at).getTime() < Date.now();
+  const loginPath = `/login?email=${encodeURIComponent(invitation.email)}&next=${encodeURIComponent(`/invitation/${token}`)}`;
+  const projectTitle = invitation.projects?.[0]?.title ?? "Projet de recherche";
+  const projectId = invitation.projects?.[0]?.id;
+  const isExpired = new Date(invitation.expires_at).getTime() < Date.now();
 
   return (
     <main className="mx-auto flex min-h-[calc(100vh-73px)] max-w-4xl items-center px-4 py-10">
@@ -68,48 +117,56 @@ export default async function InvitationPage({
           {projectTitle}
         </h2>
         <p className="mt-3 text-sm text-text-secondary">
-          Invitation pour <strong>{invitation.data.email}</strong> avec le rôle{" "}
-          <strong>{invitation.data.role}</strong>.
+          Invitation pour <strong>{invitation.email}</strong> avec le rôle{" "}
+          <strong>{invitation.role}</strong>.
         </p>
-        <p className="mt-2 text-sm text-text-secondary">Statut: {invitation.data.status}</p>
+        <p className="mt-2 text-sm text-text-secondary">Statut: {invitation.status}</p>
         <p className="mt-2 text-sm text-text-secondary">
           {projectId ? `Projet concerné: ${projectTitle}` : "Projet concerné: workspace privé"}
         </p>
         <p className="mt-2 text-sm text-text-secondary">
-          Expiration: <strong>{new Date(invitation.data.expires_at).toLocaleString("fr-FR")}</strong>
+          Expiration: <strong>{new Date(invitation.expires_at).toLocaleString("fr-FR")}</strong>
         </p>
 
-        {invitation.data.status !== "pending" ? (
-          <div className="mt-6 rounded-2xl border border-border-subtle bg-surface-elevated p-4 text-sm text-text-secondary">
-            Cette invitation n’est plus active.
-          </div>
+        {invitation.status !== "pending" ? (
+          <FeedbackBanner
+            className="mt-6"
+            description="Cette invitation n’est plus active. Demandez un nouveau lien si vous devez encore rejoindre ce projet."
+            title="Invitation clôturée"
+            variant="warning"
+          />
         ) : isExpired ? (
-          <div className="mt-6 rounded-2xl border border-border-subtle bg-surface-elevated p-4 text-sm text-text-secondary">
-            Cette invitation a expiré.
-          </div>
+          <FeedbackBanner
+            className="mt-6"
+            description="Le délai de validité est dépassé. Demandez un nouveau lien d’onboarding pour continuer."
+            title="Invitation expirée"
+            variant="warning"
+          />
         ) : user ? (
           emailMatchesInvitation ? (
             showPasswordSetup ? (
               <>
-                <div className="mt-6 rounded-2xl border border-status-warning/20 bg-status-warning-soft/65 p-4 text-sm text-text-secondary">
-                  Votre session d’invitation est ouverte. Définissez maintenant votre mot de passe
-                  pour finaliser votre accès personnel à LAKHub.
-                </div>
+                <FeedbackBanner
+                  className="mt-6"
+                  description="Votre session d’invitation est ouverte. Définissez maintenant votre mot de passe pour finaliser votre accès personnel à LAKHub."
+                  title="Dernière étape"
+                  variant="warning"
+                />
                 <InvitationPasswordSetupForm token={token} />
               </>
             ) : (
               <form action={acceptInvitationAction} className="mt-6">
-              <input name="token" type="hidden" value={token} />
-              <Button type="submit" variant="primary">
-                Rejoindre le projet
-              </Button>
+                <input name="token" type="hidden" value={token} />
+                <Button type="submit" variant="primary">
+                  Rejoindre le projet
+                </Button>
               </form>
             )
           ) : (
             <div className="mt-6 space-y-3">
               <div className="rounded-2xl border border-border-subtle bg-surface-elevated p-4 text-sm text-text-secondary">
                 Vous êtes connecté avec <strong>{user.email}</strong>. Cette invitation a été émise
-                pour <strong>{invitation.data.email}</strong>. Connectez-vous avec la bonne adresse
+                pour <strong>{invitation.email}</strong>. Connectez-vous avec la bonne adresse
                 avant de continuer.
               </div>
               <a href={loginPath}>
@@ -120,29 +177,40 @@ export default async function InvitationPage({
         ) : (
           <>
             {resolvedSearchParams.session === "1" ? (
-              <div className="mt-6 rounded-2xl border border-status-warning/20 bg-status-warning-soft/65 p-4 text-sm text-text-secondary">
-                La session d’invitation a bien été ouverte. Vous pouvez finaliser votre accès.
-              </div>
+              <FeedbackBanner
+                className="mt-6"
+                description="La session d’invitation a bien été ouverte. Vous pouvez finaliser votre accès."
+                title="Session sécurisée ouverte"
+                variant="success"
+              />
             ) : null}
 
             {existingAccount.data ? (
               <div className="mt-6 space-y-4">
-                <div className="rounded-2xl border border-border-subtle bg-surface-elevated p-4 text-sm text-text-secondary">
-                  Un compte existe déjà pour cette adresse. Connectez-vous avec{" "}
-                  <strong>{invitation.data.email}</strong> pour rattacher l’invitation à votre accès
-                  existant.
-                </div>
+                <FeedbackBanner
+                  description={
+                    <>
+                      Un compte existe déjà pour cette adresse. Connectez-vous avec{" "}
+                      <strong>{invitation.email}</strong> pour rattacher l’invitation à votre accès
+                      existant.
+                    </>
+                  }
+                  title="Compte existant détecté"
+                  variant="info"
+                />
                 <a href={loginPath}>
                   <Button>Se connecter pour accepter</Button>
                 </a>
               </div>
             ) : (
               <>
-                <div className="mt-6 rounded-2xl border border-border-subtle bg-surface-elevated p-4 text-sm text-text-secondary">
-                  Définissez vous-même votre mot de passe pour activer votre accès au projet. Aucun
-                  mot de passe n’est imposé par l’administrateur.
-                </div>
-                <InvitationAccountForm email={invitation.data.email} token={token} />
+                <FeedbackBanner
+                  className="mt-6"
+                  description="Définissez vous-même votre mot de passe pour activer votre accès au projet. Aucun mot de passe n’est imposé par l’administrateur."
+                  title="Création de votre accès"
+                  variant="info"
+                />
+                <InvitationAccountForm email={invitation.email} token={token} />
               </>
             )}
           </>

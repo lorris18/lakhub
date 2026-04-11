@@ -8,8 +8,8 @@ import { SectionHeading } from "@/components/ui/section-heading";
 import { Select } from "@/components/ui/select";
 import { Surface } from "@/components/ui/surface";
 import { Textarea } from "@/components/ui/textarea";
-import { hasPublicSupabaseEnv, hasServiceRoleEnv } from "@/lib/env";
-import { getCurrentUser } from "@/lib/auth/session";
+import { hasServiceRoleEnv } from "@/lib/env";
+import { getCurrentUser, requireCurrentUser } from "@/lib/auth/session";
 import { getSettings } from "@/lib/data/settings";
 
 type SettingsPageProps = {
@@ -17,10 +17,7 @@ type SettingsPageProps = {
 };
 
 export default async function SettingsPage({ searchParams }: SettingsPageProps) {
-  if (!hasPublicSupabaseEnv) {
-    return null;
-  }
-
+  await requireCurrentUser();
   const resolvedSearchParams = (await searchParams) ?? {};
   const recoveryParam = resolvedSearchParams["recovery"];
   const forcePasswordParam = resolvedSearchParams["force-password-change"];

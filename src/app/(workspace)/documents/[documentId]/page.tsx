@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { notFound } from "next/navigation";
 
 import {
   createCitationAction,
@@ -19,10 +20,11 @@ import { Select } from "@/components/ui/select";
 import { SectionHeading } from "@/components/ui/section-heading";
 import { Surface } from "@/components/ui/surface";
 import { Textarea } from "@/components/ui/textarea";
+import { requireCurrentUser } from "@/lib/auth/session";
 import { getDocumentReviewThread } from "@/lib/data/collaboration";
 import { getDocumentDetail, getDocumentVersionComparison } from "@/lib/data/documents";
 import { listLibraryItems } from "@/lib/data/library";
-import { hasPublicSupabaseEnv } from "@/lib/env";
+import { isSupabaseNotFoundError } from "@/lib/errors/user-facing";
 import { formatDateTime } from "@/lib/utils/format";
 
 const sectionLinks = [
@@ -38,17 +40,27 @@ export default async function DocumentPage({
 }: {
   params: Promise<{ documentId: string }>;
 }) {
-  if (!hasPublicSupabaseEnv) {
-    return null;
-  }
-
+  await requireCurrentUser();
   const { documentId } = await params;
-  const [detail, comparison, libraryItems, review] = await Promise.all([
-    getDocumentDetail(documentId),
-    getDocumentVersionComparison(documentId),
-    listLibraryItems(),
-    getDocumentReviewThread(documentId)
-  ]);
+  let detail;
+  let comparison;
+  let libraryItems;
+  let review;
+
+  try {
+    [detail, comparison, libraryItems, review] = await Promise.all([
+      getDocumentDetail(documentId),
+      getDocumentVersionComparison(documentId),
+      listLibraryItems(),
+      getDocumentReviewThread(documentId)
+    ]);
+  } catch (error) {
+    if (isSupabaseNotFoundError(error)) {
+      notFound();
+    }
+
+    throw error;
+  }
 
   return (
     <div className="space-y-8">

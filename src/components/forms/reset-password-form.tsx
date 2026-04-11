@@ -3,12 +3,19 @@
 import { useState, useTransition } from "react";
 
 import { Button } from "@/components/ui/button";
+import { FeedbackBanner } from "@/components/ui/feedback-banner";
 import { Input } from "@/components/ui/input";
+import { getUserFacingError } from "@/lib/errors/user-facing";
 
-export function ResetPasswordForm() {
+type ResetPasswordFormProps = {
+  officialSender: string;
+};
+
+export function ResetPasswordForm({ officialSender }: ResetPasswordFormProps) {
   const [message, setMessage] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
+  const errorCopy = error ? getUserFacingError({ message: error }, "recovery") : null;
 
   async function onSubmit(formData: FormData) {
     setMessage(null);
@@ -33,7 +40,9 @@ export function ResetPasswordForm() {
             return;
           }
 
-          setMessage("Un lien de réinitialisation a été envoyé.");
+          setMessage(
+            `Si un compte existe pour cette adresse, un lien de réinitialisation sera envoyé depuis ${officialSender}.`
+          );
         } catch (caughtError) {
           setError(
             caughtError instanceof Error ? caughtError.message : "Réinitialisation impossible."
@@ -58,8 +67,20 @@ export function ResetPasswordForm() {
           type="email"
         />
       </div>
-      {message ? <p className="text-sm text-status-success">{message}</p> : null}
-      {error ? <p className="text-sm text-status-danger">{error}</p> : null}
+      {message ? (
+        <FeedbackBanner
+          description={message}
+          title="Vérifiez votre messagerie"
+          variant="success"
+        />
+      ) : null}
+      {errorCopy ? (
+        <FeedbackBanner
+          description={errorCopy.description}
+          title={errorCopy.title}
+          variant="danger"
+        />
+      ) : null}
       <Button className="w-full" disabled={isPending} type="submit" variant="primary">
         {isPending ? "Envoi..." : "Envoyer le lien"}
       </Button>

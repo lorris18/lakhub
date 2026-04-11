@@ -4,8 +4,10 @@ import { useState, useTransition } from "react";
 import type { FormEvent } from "react";
 import { createSupabaseBrowserClient } from "@/lib/supabase/client";
 import { Button } from "@/components/ui/button";
+import { FeedbackBanner } from "@/components/ui/feedback-banner";
 import { Input } from "@/components/ui/input";
 import { PasswordField } from "@/components/ui/password-field";
+import { getUserFacingError } from "@/lib/errors/user-facing";
 
 type LoginFormProps = {
   defaultEmail?: string;
@@ -15,6 +17,7 @@ type LoginFormProps = {
 export function LoginForm({ defaultEmail, nextPath = "/dashboard" }: LoginFormProps) {
   const [error, setError] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
+  const errorCopy = error ? getUserFacingError({ message: error }, "auth") : null;
 
   async function submitCredentials(formData: FormData) {
     setError(null);
@@ -75,7 +78,13 @@ export function LoginForm({ defaultEmail, nextPath = "/dashboard" }: LoginFormPr
           required
         />
       </div>
-      {error ? <p className="text-sm text-text-secondary">{error}</p> : null}
+      {errorCopy ? (
+        <FeedbackBanner
+          description={errorCopy.description}
+          title={errorCopy.title}
+          variant="danger"
+        />
+      ) : null}
       <Button className="w-full" disabled={isPending} type="submit">
         {isPending ? "Connexion..." : "Se connecter"}
       </Button>

@@ -4,7 +4,9 @@ import { useState, useTransition } from "react";
 
 import { createSupabaseBrowserClient } from "@/lib/supabase/client";
 import { Button } from "@/components/ui/button";
+import { FeedbackBanner } from "@/components/ui/feedback-banner";
 import { PasswordField } from "@/components/ui/password-field";
+import { getUserFacingError } from "@/lib/errors/user-facing";
 
 type InvitationPasswordSetupFormProps = {
   token: string;
@@ -16,6 +18,7 @@ export function InvitationPasswordSetupForm({
   const [error, setError] = useState<string | null>(null);
   const [message, setMessage] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
+  const errorCopy = error ? getUserFacingError({ message: error }, "invitation") : null;
 
   async function onSubmit(formData: FormData) {
     setError(null);
@@ -97,8 +100,16 @@ export function InvitationPasswordSetupForm({
           required
         />
       </div>
-      {message ? <p className="text-sm text-status-success">{message}</p> : null}
-      {error ? <p className="text-sm text-status-danger">{error}</p> : null}
+      {message ? (
+        <FeedbackBanner description={message} title="Validation en cours" variant="success" />
+      ) : null}
+      {errorCopy ? (
+        <FeedbackBanner
+          description={errorCopy.description}
+          title={errorCopy.title}
+          variant="danger"
+        />
+      ) : null}
       <Button className="w-full" disabled={isPending} type="submit" variant="primary">
         {isPending ? "Finalisation..." : "Définir mon mot de passe et entrer"}
       </Button>

@@ -1,13 +1,10 @@
 import { SectionHeading } from "@/components/ui/section-heading";
 import { Surface } from "@/components/ui/surface";
-import { hasPublicSupabaseEnv } from "@/lib/env";
+import { requireCurrentUser } from "@/lib/auth/session";
 import { aiFeatureEnabled } from "@/lib/features";
 
 export default async function AiPage() {
-  if (!hasPublicSupabaseEnv) {
-    return null;
-  }
-
+  await requireCurrentUser();
   if (!aiFeatureEnabled) {
     return (
       <div className="space-y-8">
@@ -30,6 +27,20 @@ export default async function AiPage() {
   }
 
   return (
-    null
+    <div className="space-y-8">
+      <SectionHeading
+        eyebrow="IA"
+        title="IA maintenue hors chemin critique"
+        description="Même lorsqu’elle est activée techniquement, l’IA ne pilote pas encore les parcours essentiels du produit."
+      />
+
+      <Surface className="space-y-4">
+        <h3 className="font-display text-2xl text-brand-primary">Activation sous contrôle</h3>
+        <p className="text-sm leading-7 text-text-secondary">
+          Cette zone reste volontairement séparée des flux critiques pour préserver la stabilité,
+          la lisibilité et la confiance produit sur le cœur du workspace.
+        </p>
+      </Surface>
+    </div>
   );
 }

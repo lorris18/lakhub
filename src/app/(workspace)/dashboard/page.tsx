@@ -5,16 +5,13 @@ import { SectionHeading } from "@/components/ui/section-heading";
 import { Surface } from "@/components/ui/surface";
 import { Button } from "@/components/ui/button";
 import { EmptyState } from "@/components/ui/empty-state";
+import { requireCurrentUser } from "@/lib/auth/session";
 import { getDashboardSnapshot } from "@/lib/data/dashboard";
-import { hasPublicSupabaseEnv } from "@/lib/env";
 import { formatDate, fromNow } from "@/lib/utils/format";
 import { markNotificationReadAction } from "@/app/(workspace)/actions";
 
 export default async function DashboardPage() {
-  if (!hasPublicSupabaseEnv) {
-    return null;
-  }
-
+  await requireCurrentUser();
   const snapshot = await getDashboardSnapshot();
   const resumeDocument = snapshot.documents[0] ?? null;
   const resumeProject = snapshot.projects[0] ?? null;
@@ -132,7 +129,10 @@ export default async function DashboardPage() {
                 ) : null}
               </div>
             ) : (
-              <p className="text-sm text-text-secondary">Rien d’urgent pour le moment.</p>
+              <EmptyState
+                title="Aucun point bloquant"
+                description="Les échéances proches et les notifications importantes apparaîtront ici dès qu’il y aura quelque chose à traiter."
+              />
             )}
           </Surface>
 
@@ -158,7 +158,10 @@ export default async function DashboardPage() {
                 ))}
               </div>
             ) : (
-              <p className="text-sm text-text-secondary">Aucune activité récente pour le moment.</p>
+              <EmptyState
+                title="Aucune activité récente"
+                description="Dès qu’un projet ou un document sera mis à jour, le mouvement du workspace apparaîtra ici."
+              />
             )}
 
             {snapshot.notifications.length ? (

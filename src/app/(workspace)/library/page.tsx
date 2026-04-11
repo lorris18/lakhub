@@ -1,3 +1,5 @@
+import Link from "next/link";
+
 import {
   createCollectionAction,
   createLibraryItemAction,
@@ -6,13 +8,15 @@ import {
 } from "@/app/(workspace)/actions";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { EmptyState } from "@/components/ui/empty-state";
 import { Input } from "@/components/ui/input";
 import { SectionHeading } from "@/components/ui/section-heading";
 import { Select } from "@/components/ui/select";
 import { Surface } from "@/components/ui/surface";
 import { Textarea } from "@/components/ui/textarea";
+import { requireCurrentUser } from "@/lib/auth/session";
 import { LibraryImportForm } from "@/components/library/library-import-form";
-import { hasPublicSupabaseEnv, hasServiceRoleEnv } from "@/lib/env";
+import { hasServiceRoleEnv } from "@/lib/env";
 import { listLibraryItems, listLibraryTaxonomy } from "@/lib/data/library";
 import { listProjects } from "@/lib/data/projects";
 import { formatDate } from "@/lib/utils/format";
@@ -22,16 +26,14 @@ export default async function LibraryPage({
 }: {
   searchParams?: Promise<{ q?: string }>;
 }) {
-  if (!hasPublicSupabaseEnv) {
-    return null;
-  }
-
+  await requireCurrentUser();
   const params = await searchParams;
   const [items, taxonomy, projects] = await Promise.all([
     listLibraryItems(params?.q),
     listLibraryTaxonomy(),
     listProjects()
   ]);
+  const hasSearchQuery = Boolean(params?.q?.trim());
 
   return (
     <div className="space-y-8">
@@ -174,16 +176,31 @@ export default async function LibraryPage({
                 </div>
               ))
             ) : (
-              <div className="rounded-2xl border border-dashed border-border-strong bg-surface-panel p-8 text-sm text-text-secondary">
-                La bibliothèque est prête. Ajoutez une première source ou importez un document pour
-                commencer votre corpus.
-              </div>
+              <EmptyState
+                title={hasSearchQuery ? "Aucun résultat trouvé" : "Bibliothèque prête"}
+                description={
+                  hasSearchQuery
+                    ? `Aucune source ne correspond à “${params?.q}”. Essayez un autre terme ou ajoutez la référence manuellement.`
+                    : "Ajoutez une première source ou importez un document pour constituer votre corpus de travail."
+                }
+                action={
+                  hasSearchQuery ? (
+                    <Link href="/library">
+                      <Button variant="secondary">Réinitialiser la recherche</Button>
+                    </Link>
+                  ) : (
+                    <a href="#library-add-source">
+                      <Button variant="primary">Ajouter une source</Button>
+                    </a>
+                  )
+                }
+              />
             )}
           </div>
         </Surface>
 
         <div className="space-y-6">
-          <Surface className="space-y-4">
+          <Surface className="space-y-4" id="library-add-source">
             <div>
               <p className="text-xs uppercase tracking-[0.2em] text-text-muted">Action principale</p>
               <h3 className="mt-2 font-display text-2xl text-brand-primary">Ajouter une source</h3>

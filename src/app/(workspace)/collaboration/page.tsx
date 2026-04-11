@@ -6,19 +6,17 @@ import {
 } from "@/app/(workspace)/actions";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { EmptyState } from "@/components/ui/empty-state";
 import { SectionHeading } from "@/components/ui/section-heading";
 import { Select } from "@/components/ui/select";
 import { Surface } from "@/components/ui/surface";
 import { Textarea } from "@/components/ui/textarea";
-import { hasPublicSupabaseEnv } from "@/lib/env";
+import { requireCurrentUser } from "@/lib/auth/session";
 import { getCollaborationFeed } from "@/lib/data/collaboration";
 import { listDocumentCollaborationOptions } from "@/lib/data/documents";
 
 export default async function CollaborationPage() {
-  if (!hasPublicSupabaseEnv) {
-    return null;
-  }
-
+  await requireCurrentUser();
   const [feed, documents] = await Promise.all([getCollaborationFeed(), listDocumentCollaborationOptions()]);
   const versionOptions = documents.flatMap((document) =>
     document.versions.map((version) => ({
@@ -39,73 +37,87 @@ export default async function CollaborationPage() {
         <div className="space-y-6">
           <Surface className="space-y-4">
             <h3 className="font-display text-2xl text-brand-primary">Commentaires récents</h3>
-            <div className="space-y-3">
-              {feed.comments.map((comment) => (
-                <div key={comment.id} className="rounded-2xl border border-border-subtle bg-surface-elevated p-4">
-                  <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-                    <p className="font-medium text-brand-primary">{comment.document_title}</p>
-                    <Badge variant={comment.status === "resolved" ? "success" : "warning"}>
-                      {comment.status}
-                    </Badge>
+            {feed.comments.length ? (
+              <div className="space-y-3">
+                {feed.comments.map((comment) => (
+                  <div key={comment.id} className="rounded-2xl border border-border-subtle bg-surface-elevated p-4">
+                    <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+                      <p className="font-medium text-brand-primary">{comment.document_title}</p>
+                      <Badge variant={comment.status === "resolved" ? "success" : "warning"}>
+                        {comment.status}
+                      </Badge>
+                    </div>
+                    <p className="mt-1 text-xs uppercase tracking-[0.18em] text-text-muted">{comment.anchor_id}</p>
+                    <p className="mt-2 text-sm text-text-secondary">{comment.body}</p>
+                    <form action={updateCommentStatusAction} className="mt-3 flex flex-wrap gap-2">
+                      <input name="commentId" type="hidden" value={comment.id} />
+                      <input
+                        name="status"
+                        type="hidden"
+                        value={comment.status === "resolved" ? "open" : "resolved"}
+                      />
+                      <Button size="sm" type="submit" variant="ghost">
+                        {comment.status === "resolved" ? "Rouvrir" : "Résoudre"}
+                      </Button>
+                    </form>
                   </div>
-                  <p className="mt-1 text-xs uppercase tracking-[0.18em] text-text-muted">{comment.anchor_id}</p>
-                  <p className="mt-2 text-sm text-text-secondary">{comment.body}</p>
-                  <form action={updateCommentStatusAction} className="mt-3 flex flex-wrap gap-2">
-                    <input name="commentId" type="hidden" value={comment.id} />
-                    <input
-                      name="status"
-                      type="hidden"
-                      value={comment.status === "resolved" ? "open" : "resolved"}
-                    />
-                    <Button size="sm" type="submit" variant="ghost">
-                      {comment.status === "resolved" ? "Rouvrir" : "Résoudre"}
-                    </Button>
-                  </form>
-                </div>
-              ))}
-            </div>
+                ))}
+              </div>
+            ) : (
+              <EmptyState
+                title="Aucun commentaire récent"
+                description="Les commentaires de lecture et de révision apparaîtront ici dès qu’un document sera annoté."
+              />
+            )}
           </Surface>
 
           <Surface className="space-y-4">
             <h3 className="font-display text-2xl text-brand-primary">Suggestions</h3>
-            <div className="space-y-3">
-              {feed.suggestions.map((suggestion) => (
-                <div key={suggestion.id} className="rounded-2xl border border-border-subtle bg-surface-elevated p-4">
-                  <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-                    <p className="font-medium text-brand-primary">{suggestion.document_title}</p>
-                    <Badge
-                      variant={
-                        suggestion.status === "accepted"
-                          ? "success"
-                          : suggestion.status === "rejected"
-                            ? "archived"
-                            : "warning"
-                      }
-                    >
-                      {suggestion.status}
-                    </Badge>
-                  </div>
-                  <p className="text-sm text-text-muted">Original</p>
-                  <p className="mt-1 text-sm text-text-secondary">{suggestion.original_text}</p>
-                  <p className="mt-3 text-sm text-text-muted">Proposé</p>
-                  <p className="mt-1 text-sm text-brand-primary">{suggestion.proposed_text}</p>
-                  <form action={updateSuggestionStatusAction} className="mt-3 flex flex-wrap gap-2">
-                    <input name="suggestionId" type="hidden" value={suggestion.id} />
-                    <Button name="status" type="submit" value="accepted" variant="success">
-                      Accepter
-                    </Button>
-                    <Button name="status" type="submit" value="rejected" variant="danger">
-                      Rejeter
-                    </Button>
-                    {suggestion.status !== "open" ? (
-                      <Button name="status" type="submit" value="open" variant="secondary">
-                        Rouvrir
+            {feed.suggestions.length ? (
+              <div className="space-y-3">
+                {feed.suggestions.map((suggestion) => (
+                  <div key={suggestion.id} className="rounded-2xl border border-border-subtle bg-surface-elevated p-4">
+                    <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+                      <p className="font-medium text-brand-primary">{suggestion.document_title}</p>
+                      <Badge
+                        variant={
+                          suggestion.status === "accepted"
+                            ? "success"
+                            : suggestion.status === "rejected"
+                              ? "archived"
+                              : "warning"
+                        }
+                      >
+                        {suggestion.status}
+                      </Badge>
+                    </div>
+                    <p className="text-sm text-text-muted">Original</p>
+                    <p className="mt-1 text-sm text-text-secondary">{suggestion.original_text}</p>
+                    <p className="mt-3 text-sm text-text-muted">Proposé</p>
+                    <p className="mt-1 text-sm text-brand-primary">{suggestion.proposed_text}</p>
+                    <form action={updateSuggestionStatusAction} className="mt-3 flex flex-wrap gap-2">
+                      <input name="suggestionId" type="hidden" value={suggestion.id} />
+                      <Button name="status" type="submit" value="accepted" variant="success">
+                        Accepter
                       </Button>
-                    ) : null}
-                  </form>
-                </div>
-              ))}
-            </div>
+                      <Button name="status" type="submit" value="rejected" variant="danger">
+                        Rejeter
+                      </Button>
+                      {suggestion.status !== "open" ? (
+                        <Button name="status" type="submit" value="open" variant="secondary">
+                          Rouvrir
+                        </Button>
+                      ) : null}
+                    </form>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <EmptyState
+                title="Aucune suggestion ouverte"
+                description="Les propositions de reformulation apparaîtront ici dès qu’un document entrera en cycle de révision."
+              />
+            )}
           </Surface>
         </div>
 
@@ -197,17 +209,24 @@ export default async function CollaborationPage() {
 
           <Surface className="space-y-3">
             <h3 className="font-display text-2xl text-brand-primary">Documents accessibles</h3>
-            {documents.slice(0, 8).map((document) => (
-              <div key={document.id} className="rounded-2xl border border-border-subtle bg-surface-elevated p-4">
-                <p className="font-medium text-brand-primary">{document.title}</p>
-                <p className="mt-1 text-sm text-text-secondary">
-                  {document.kind} • {document.status}
-                </p>
-                <p className="mt-2 text-xs uppercase tracking-[0.18em] text-text-muted">
-                  {document.versions.length} version(s) disponible(s)
-                </p>
-              </div>
-            ))}
+            {documents.length ? (
+              documents.slice(0, 8).map((document) => (
+                <div key={document.id} className="rounded-2xl border border-border-subtle bg-surface-elevated p-4">
+                  <p className="font-medium text-brand-primary">{document.title}</p>
+                  <p className="mt-1 text-sm text-text-secondary">
+                    {document.kind} • {document.status}
+                  </p>
+                  <p className="mt-2 text-xs uppercase tracking-[0.18em] text-text-muted">
+                    {document.versions.length} version(s) disponible(s)
+                  </p>
+                </div>
+              ))
+            ) : (
+              <EmptyState
+                title="Aucun document accessible"
+                description="Créez ou rattachez d’abord un document pour activer la collaboration et la révision."
+              />
+            )}
           </Surface>
         </div>
       </div>

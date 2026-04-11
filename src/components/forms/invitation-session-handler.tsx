@@ -2,6 +2,8 @@
 
 import { useEffect, useState } from "react";
 
+import { FeedbackBanner } from "@/components/ui/feedback-banner";
+import { getUserFacingError } from "@/lib/errors/user-facing";
 import { createSupabaseBrowserClient } from "@/lib/supabase/client";
 
 type InvitationSessionHandlerProps = {
@@ -11,6 +13,7 @@ type InvitationSessionHandlerProps = {
 export function InvitationSessionHandler({ enabled }: InvitationSessionHandlerProps) {
   const [message, setMessage] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const errorCopy = error ? getUserFacingError({ message: error }, "invitation") : null;
 
   useEffect(() => {
     if (!enabled) {
@@ -67,8 +70,11 @@ export function InvitationSessionHandler({ enabled }: InvitationSessionHandlerPr
   }
 
   return (
-    <div className="mt-4 rounded-2xl border border-brand-accent/20 bg-brand-accent-soft/60 p-4 text-sm text-text-secondary">
-      {error ?? message}
-    </div>
+    <FeedbackBanner
+      className="mt-4"
+      description={errorCopy ? errorCopy.description : message ?? ""}
+      title={errorCopy?.title ?? "Ouverture sécurisée"}
+      variant={errorCopy ? "danger" : "info"}
+    />
   );
 }

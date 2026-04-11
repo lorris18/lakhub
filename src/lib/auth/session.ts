@@ -1,4 +1,5 @@
 import { cache } from "react";
+import { redirect } from "next/navigation";
 
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 
@@ -30,4 +31,24 @@ export const getCurrentProfile = cache(async () => {
   }
 
   return data;
+});
+
+export const requireCurrentUser = cache(async () => {
+  const user = await getCurrentUser();
+
+  if (!user) {
+    redirect("/login");
+  }
+
+  return user;
+});
+
+export const requireCurrentProfile = cache(async () => {
+  const profile = await getCurrentProfile();
+
+  if (!profile) {
+    redirect("/login");
+  }
+
+  return profile;
 });

@@ -4,11 +4,12 @@ import type { Route } from "next";
 
 import { LoginForm } from "@/components/forms/login-form";
 import { RecoverySessionHandler } from "@/components/forms/recovery-session-handler";
+import { FeedbackBanner } from "@/components/ui/feedback-banner";
 import { SetupNotice } from "@/components/ui/setup-notice";
 import { Surface } from "@/components/ui/surface";
 import { createHubMetadata } from "@/lib/constants/app";
 import { getCurrentUser } from "@/lib/auth/session";
-import { hasPublicSupabaseEnv } from "@/lib/env";
+import { hasPublicSupabaseEnv, resolvedEmailFromAddress } from "@/lib/env";
 
 export const metadata = createHubMetadata({
   title: "Connexion",
@@ -55,14 +56,19 @@ export default async function LoginPage({
           </h1>
           <div className="space-y-4 text-sm leading-7 text-text-secondary">
             <p>
-              LAKHub constitue l’espace privé de travail. Le site public éditorial et la logique
-              d’application sont désormais séparés.
+              LAKHub constitue le cockpit privé de travail, de production et de pilotage. Vous y
+              retrouvez vos projets, documents, bibliothèques et espaces de collaboration.
             </p>
             <p>
               Après authentification, l’accès se fait directement vers le dashboard et les surfaces
-              privées de travail.
+              privées de travail, sans passer par le site public.
             </p>
           </div>
+          <FeedbackBanner
+            description={`Les emails officiels d’accès et de réinitialisation sont envoyés depuis ${resolvedEmailFromAddress}.`}
+            title="Réassurance"
+            variant="info"
+          />
         </div>
 
         <Surface className="mx-auto w-full max-w-xl self-center p-6 sm:p-8">
@@ -74,9 +80,12 @@ export default async function LoginPage({
             </p>
           </div>
           {params?.account === "deleted" ? (
-            <div className="mt-4 rounded-2xl border border-brand-accent/20 bg-brand-accent-soft/60 p-4 text-sm text-text-secondary">
-              Le compte a bien été supprimé et la session a été fermée.
-            </div>
+            <FeedbackBanner
+              className="mt-4"
+              description="Le compte a bien été supprimé et la session a été fermée."
+              title="Compte supprimé"
+              variant="success"
+            />
           ) : null}
           <RecoverySessionHandler enabled={isRecoveryFlow} />
           <div className="mt-6">

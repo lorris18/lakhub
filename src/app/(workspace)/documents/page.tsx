@@ -2,20 +2,18 @@ import Link from "next/link";
 
 import { createDocumentAction } from "@/app/(workspace)/actions";
 import { Button } from "@/components/ui/button";
+import { EmptyState } from "@/components/ui/empty-state";
 import { Input } from "@/components/ui/input";
 import { SectionHeading } from "@/components/ui/section-heading";
 import { Select } from "@/components/ui/select";
 import { Surface } from "@/components/ui/surface";
-import { hasPublicSupabaseEnv } from "@/lib/env";
+import { requireCurrentUser } from "@/lib/auth/session";
 import { listDocuments } from "@/lib/data/documents";
 import { listProjects } from "@/lib/data/projects";
 import { formatDate } from "@/lib/utils/format";
 
 export default async function DocumentsPage() {
-  if (!hasPublicSupabaseEnv) {
-    return null;
-  }
-
+  await requireCurrentUser();
   const [documents, projects] = await Promise.all([listDocuments(), listProjects()]);
 
   return (
@@ -32,28 +30,40 @@ export default async function DocumentsPage() {
             <h3 className="font-display text-2xl text-brand-primary">Documents</h3>
             <p className="text-sm text-text-secondary">{documents.length} document(s)</p>
           </div>
-          <div className="space-y-3">
-            {documents.map((document) => (
-              <Link
-                key={document.id}
-                href={`/documents/${document.id}`}
-                className="rounded-2xl border border-border-subtle bg-surface-elevated p-4 transition hover:border-brand-accent"
-              >
-                <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
-                  <div>
-                    <p className="font-medium text-brand-primary">{document.title}</p>
-                    <p className="mt-1 text-sm text-text-secondary">
-                      {document.kind} • {document.status}
-                    </p>
+          {documents.length ? (
+            <div className="space-y-3">
+              {documents.map((document) => (
+                <Link
+                  key={document.id}
+                  href={`/documents/${document.id}`}
+                  className="rounded-2xl border border-border-subtle bg-surface-elevated p-4 transition hover:border-brand-accent"
+                >
+                  <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
+                    <div>
+                      <p className="font-medium text-brand-primary">{document.title}</p>
+                      <p className="mt-1 text-sm text-text-secondary">
+                        {document.kind} • {document.status}
+                      </p>
+                    </div>
+                    <p className="text-sm text-text-muted">{formatDate(document.updated_at)}</p>
                   </div>
-                  <p className="text-sm text-text-muted">{formatDate(document.updated_at)}</p>
-                </div>
-              </Link>
-            ))}
-          </div>
+                </Link>
+              ))}
+            </div>
+          ) : (
+            <EmptyState
+              title="Aucun document pour le moment"
+              description="L’atelier est prêt. Créez une première pièce de travail pour ouvrir l’éditeur, la versionner puis la réviser."
+              action={
+                <a href="#new-document">
+                  <Button variant="primary">Créer un document</Button>
+                </a>
+              }
+            />
+          )}
         </Surface>
 
-        <Surface className="space-y-4">
+        <Surface className="space-y-4" id="new-document">
           <div>
             <p className="text-xs uppercase tracking-[0.2em] text-text-muted">Nouveau document</p>
             <h3 className="mt-2 font-display text-2xl text-brand-primary">Créer une pièce de travail</h3>

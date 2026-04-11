@@ -11,10 +11,10 @@ import { SectionHeading } from "@/components/ui/section-heading";
 import { Select } from "@/components/ui/select";
 import { Surface } from "@/components/ui/surface";
 import { Textarea } from "@/components/ui/textarea";
+import { requireCurrentUser } from "@/lib/auth/session";
 import { getCollaborationFeed } from "@/lib/data/collaboration";
 import { listDocuments } from "@/lib/data/documents";
 import { listProjects } from "@/lib/data/projects";
-import { hasPublicSupabaseEnv } from "@/lib/env";
 import { formatDate, fromNow } from "@/lib/utils/format";
 
 const views = [
@@ -34,10 +34,7 @@ export default async function WorkPage({
 }: {
   searchParams?: Promise<{ view?: string }>;
 }) {
-  if (!hasPublicSupabaseEnv) {
-    return null;
-  }
-
+  await requireCurrentUser();
   const params = await searchParams;
   const activeView = isWorkView(params?.view) ? params.view : "projects";
 
@@ -279,18 +276,25 @@ export default async function WorkPage({
               </p>
             </div>
             <div className="space-y-3">
-              {documents.slice(0, 6).map((document) => (
-                <Link
-                  key={document.id}
-                  href={`/documents/${document.id}`}
-                  className="block rounded-2xl border border-border-subtle bg-surface-elevated p-4 transition hover:border-brand-accent"
-                >
-                  <p className="font-medium text-brand-primary">{document.title}</p>
-                  <p className="mt-1 text-sm text-text-secondary">
-                    {document.kind} • {document.status}
-                  </p>
-                </Link>
-              ))}
+              {documents.length ? (
+                documents.slice(0, 6).map((document) => (
+                  <Link
+                    key={document.id}
+                    href={`/documents/${document.id}`}
+                    className="block rounded-2xl border border-border-subtle bg-surface-elevated p-4 transition hover:border-brand-accent"
+                  >
+                    <p className="font-medium text-brand-primary">{document.title}</p>
+                    <p className="mt-1 text-sm text-text-secondary">
+                      {document.kind} • {document.status}
+                    </p>
+                  </Link>
+                ))
+              ) : (
+                <EmptyState
+                  title="Aucun document à ouvrir"
+                  description="Créez d’abord un document pour lancer un cycle de relecture ou de soumission."
+                />
+              )}
             </div>
           </Surface>
         </div>

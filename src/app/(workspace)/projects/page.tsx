@@ -8,15 +8,12 @@ import { SectionHeading } from "@/components/ui/section-heading";
 import { Select } from "@/components/ui/select";
 import { Surface } from "@/components/ui/surface";
 import { Textarea } from "@/components/ui/textarea";
+import { requireCurrentUser } from "@/lib/auth/session";
 import { listProjects } from "@/lib/data/projects";
-import { hasPublicSupabaseEnv } from "@/lib/env";
 import { formatDate, fromNow } from "@/lib/utils/format";
 
 export default async function ProjectsPage() {
-  if (!hasPublicSupabaseEnv) {
-    return null;
-  }
-
+  await requireCurrentUser();
   const projects = await listProjects();
 
   return (
