@@ -4,12 +4,21 @@ import { redirect } from "next/navigation";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 
 export const getCurrentUser = cache(async () => {
-  const supabase = await createSupabaseServerClient();
-  const {
-    data: { user }
-  } = await supabase.auth.getUser();
+  try {
+    const supabase = await createSupabaseServerClient();
+    const {
+      data: { user },
+      error
+    } = await supabase.auth.getUser();
 
-  return user;
+    if (error) {
+      return null;
+    }
+
+    return user;
+  } catch {
+    return null;
+  }
 });
 
 export const getCurrentProfile = cache(async () => {
@@ -24,7 +33,7 @@ export const getCurrentProfile = cache(async () => {
     .from("users")
     .select("id, email, full_name, institution, bio, avatar_path, role")
     .eq("id", user.id)
-    .single();
+    .maybeSingle();
 
   if (error) {
     throw error;
