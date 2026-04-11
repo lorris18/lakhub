@@ -32,3 +32,10 @@ npm run build
 - `NEXT_PUBLIC_SUPABASE_URL`
 - `NEXT_PUBLIC_SUPABASE_ANON_KEY`
 - `SUPABASE_SERVICE_ROLE_KEY`
+
+## Exploitation
+
+- [Environnement](./docs/operations/ENVIRONMENT.md)
+- [Déploiement](./docs/operations/DEPLOYMENT.md)
+- [Recovery / incident](./docs/operations/RECOVERY.md)
+- [Gestion admin](./docs/operations/ADMIN_RUNBOOK.md)
